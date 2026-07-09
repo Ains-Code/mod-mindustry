@@ -41,6 +41,8 @@ import mindustrytool.features.music.MusicFeature;
 import mindustrytool.features.music.dto.MusicRegisterEvent;
 import mindustrytool.features.display.wavepreview.WavePreviewFeature;
 import mindustrytool.features.savesync.SaveSyncFeature;
+import mindustrytool.features.auth.AuthService;
+import mindustrytool.features.assistantbuilder.AssistantBuilderFeature;
 
 public class Main extends Mod {
     public static LoadedMod self;
@@ -136,7 +138,8 @@ public class Main extends Mod {
                 new ProgressDisplay(),
                 new ToggleRenderingFeature(),
                 new TimeControlFeature(),
-                new CampaignFeature());
+                new CampaignFeature(),
+                new AssistantBuilderFeature());
 
         boolean hasCrashed = new CrashReportService().checkForCrashes();
         if (hasCrashed) {
