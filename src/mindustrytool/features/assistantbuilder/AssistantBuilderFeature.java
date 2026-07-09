@@ -3,14 +3,18 @@ package mindustrytool.features.assistantbuilder;
 import java.util.Optional;
 
 import arc.Core;
+import arc.Events;
+import arc.math.Mathf;
 import arc.scene.ui.Dialog;
 import mindustry.Vars;
 import mindustry.entities.units.BuildPlan;
+import mindustry.game.EventType.Trigger;
 import mindustry.game.Schematic;
 import mindustry.game.Schematic.Stile;
 import mindustry.gen.Icon;
 import mindustry.world.Block;
 import mindustry.world.blocks.defense.Wall;
+import mindustrytool.MdtKeybinds;
 import mindustrytool.features.Feature;
 import mindustrytool.features.FeatureMetadata;
 
@@ -18,7 +22,9 @@ public class AssistantBuilderFeature implements Feature {
     private static final String STYLE_SETTING_KEY = "mindustrytool.assistantbuilder.style";
 
     private ArchitecturalStyle style = readSavedStyle();
-    private AssistantBuilderSettingDialog dialog;
+    private AssistantBuilderSettingDialog settingDialog;
+    private AssistantBuilderPickDialog pickDialog;
+    private Schematic armed;
 
     @Override
     public FeatureMetadata getMetadata() {
@@ -32,11 +38,57 @@ public class AssistantBuilderFeature implements Feature {
     }
 
     @Override
+    public void init() {
+        MdtKeybinds.addFeatureKeyBind(this, MdtKeybinds.assistantBuilderKb);
+
+        Events.run(Trigger.update, () -> {
+            if (!isEnabled() || armed == null) {
+                return;
+            }
+
+            if (!Vars.state.isGame() || Core.scene.hasField() || Core.scene.hasDialog()) {
+                return;
+            }
+
+            if (Core.input.justTouched()) {
+                var world = Core.input.mouseWorld();
+                int tileX = Mathf.round(world.x / Vars.tilesize);
+                int tileY = Mathf.round(world.y / Vars.tilesize);
+
+                queueBuild(armed, tileX, tileY);
+                disarm();
+
+                Vars.ui.showInfoToast("@assistantbuilder.toast.queued", 2f);
+            }
+        });
+    }
+
+    @Override
     public Optional<Dialog> setting() {
-        if (dialog == null) {
-            dialog = new AssistantBuilderSettingDialog(this);
+        if (settingDialog == null) {
+            settingDialog = new AssistantBuilderSettingDialog(this);
         }
-        return Optional.of(dialog);
+        return Optional.of(settingDialog);
+    }
+
+    public void openPicker() {
+        if (pickDialog == null) {
+            pickDialog = new AssistantBuilderPickDialog(this);
+        }
+        pickDialog.show();
+    }
+
+    public void arm(Schematic schematic) {
+        armed = schematic;
+        Vars.ui.showInfoToast("@assistantbuilder.toast.armed", 2f);
+    }
+
+    public void disarm() {
+        armed = null;
+    }
+
+    public boolean isArmed() {
+        return armed != null;
     }
 
     public ArchitecturalStyle getStyle() {
