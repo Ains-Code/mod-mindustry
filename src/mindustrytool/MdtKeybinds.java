@@ -13,6 +13,7 @@ public class MdtKeybinds {
     public static KeyBind mapBrowserKb = KeyBind.add("mapBrowser", KeyCode.unset, "MindustryTool"),
             schematicBrowserKb = KeyBind.add("schematicBrowser", KeyCode.unset, "MindustryTool"),
             autoPlay = KeyBind.add("autoPlay", KeyCode.unset, "MindustryTool"),
+            assistantBuilderKb = KeyBind.add("assistantBuilder", KeyCode.unset, "MindustryTool"),
             chatKb = KeyBind.add("chatOverlay", KeyCode.unset, "MindustryTool");
 
     public static void addFeatureKeyBind(Feature feature, KeyBind keyBind) {
