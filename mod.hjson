@@ -1,0 +1,58 @@
+name: "mindustry-tool"
+
+displayName: "Mindustry Tool"
+
+author: "[#FF0018[]]S[#FFA52C[]]h[#FFFF41[]]a[#008018[]]r[#0000F9[]]l[#86007D[]]o[#FF0018[]]t[#FFA52C[]]t[#FFFF41[]]e[[]]"
+
+main: "mindustrytool.Main"
+
+description:
+  '''
+[accent[]] [#FFF000[]]Mindustry Tool  [white[]]- The Ultimate Utility for Every Player[[]]
+
+[white[]]Mindustry Tool is a feature-rich mod that integrates with [#88C6ED[]]mindustry-tool.com[white[]], enhancing your gameplay with community content, advanced automation, and powerful visual analysis tools.
+
+
+[accent[]] [#88C6ED[]]Content Browser:[[]]
+  [white[]] Access a curated repository of [#394BA0[]]Maps [white[]]and [#D54799[]]Schematics [white[]]directly in-game.
+  [white[]] Filter by size, mode, planet, and version to find exactly what you need.
+
+[accent[]] [#FFF000[]]Automation (Autoplay):[[]]
+  [white[]] Smart task management for building support, repairing, and automated mining.
+  [white[]] Dynamic AI control that takes over your unit to optimize efficiency.
+
+[accent[]] [#EF4444[]]Visualizers & HUD:[[]]
+  [white[]] Customizable health bars, enemy pathfinding prediction, and range indicators.
+  [white[]] Enhanced resource tracking and HUD elements for better situational awareness.
+
+[accent[]] [#009F75[]]Campaign Progression:[[]]
+  [white[]] [#009F75[]]Sector Tracking:[white[]] See captured sectors, wave countdowns, and core resources at a glance.
+  [white[]] Get warned before the next wave lands and see nearby sectors worth expanding into.
+
+[accent[]] [#82C341[]]Quality of Life:[[]]
+  [white[]] [#82C341[]]Smart Upgrade:[white[]] Instantly upgrade entire distribution chains with one tap.
+  [white[]] [#FAA31B[]]God Mode:[white[]] Powerful suite for sandbox testing and server administration.
+
+[accent[]] [#FFF000[]]Community Credits[[]]:
+[#88C6ED[]] Design-it Community:  
+  [#394BA0[]]  Discord: [white[]]discord.gg/SYVkWPhmXY  
+  [#394BA0[]]  GitHub: [white[]]MindustryDesignIt
+
+[#82C341[]] Mindustry Top Community:  
+  [#88C6ED[]]  Website: [white[]]www.mindustry.top  
+  [#009F75[]]  Email: [white[]]me@wayzer.top
+
+[accent[]] [#FFF000[]]Useful Links[[]]:
+  [#88C6ED[]]  Website: [white[]]mindustry-tool.com[[]]
+  [#394BA0[]]  Discord: [white[]]discord.gg/nQDrEHVkrt[[]]
+  [#009F75[]]  Email: [white[]]mindustrytool@gmail.com[[]]
+  [#FAA31B[]]  Reddit: [white[]]r/MindustryTool[[]]
+  [#EF4444[]]  YouTube: [white[]]Mindustry Tool[[]]
+  '''
+version: v4.57.5-v8
+
+minGameVersion: 154
+
+java: true
+
+hidden: true

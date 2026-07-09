@@ -1,59 +1,64 @@
-# Ore Scanner Tool — Mindustry Mod
+# **[Mindustry Tool](https://mindustry-tool.com)**
 
-Isang simpleng **tool item** para sa Mindustry na nagre-reveal ng mga ore
-deposit sa paligid ng player kapag ginamit.
+![GitHub all releases](https://img.shields.io/github/downloads/MindustryTool/MindustryToolMod/total?style=flat-square)
+![GitHub release (latest by date)](https://img.shields.io/github/downloads/MindustryTool/MindustryToolMod/latest/total?style=flat-square)
+[![Discord](https://img.shields.io/discord/1295206730925609002.svg?logo=discord&logoColor=white&logoWidth=20&labelColor=7289DA&label=Discord&color=17cf48)](https://discord.gg/YGuBQ3g9fQ)<br>
 
-## Paano gumagana
+![Icon](banner.png)
 
-### 1. Ore Scanner (gold/yellow chip)
-- Kapag ang unit mo ay may dalang Ore Scanner sa cargo, at nag-tap ka sa
-  screen, mag-a-activate ang scan.
-- Ire-reveal nito (visually mamarkahan) ang lahat ng ore tiles sa loob ng
-  12-tile radius sa paligid mo.
-- May 8-second cooldown bawat scan para hindi ito abusuhin.
+**Mindustry Tool** is a feature-rich mod that integrates with [Mindustry Tool](https://mindustry-tool.com), significantly enhancing the **Mindustry** gameplay experience. It offers everything from community-driven content sharing to advanced automation, enhanced communication, and deep visual analysis tools.
 
-### 2. Builder Drone Core (blue/cyan core) — "Assistant Builder"
-- Kapag may dala kang Builder Drone Core at nag-tap ka, magde-deploy ito ng
-  isang **helper drone** (gamit ang `mono` unit type) malapit sa iyo.
-- Ang drone ay awtomatikong tutulong mag-**build/repair** ng mga structure
-  sa paligid gamit ang built-in na "support unit AI" ng Mindustry — ganito
-  rin ang ginagawa ng mono/poly units sa vanilla game.
-- Bawat deploy, gumagastos ng 1 Builder Drone Core mula sa cargo mo.
-- May limitasyon: max **3 drone** sabay-sabay bawat player. Kapag namatay o
-  nawala ang isang drone, pwede ka na ulit mag-deploy ng bago.
-- May message na ipapakita sa chat kapag successful ang deploy, kapag naka-
-  max limit, o kapag walang dalang core.
+## **Features:**
 
-## Paano i-install
-1. I-download at i-extract (o direktang gamitin) ang `OreScannerMod` folder
-   / zip.
-2. Buksan ang Mindustry.
-3. Pumunta sa **Mods** menu (sa main menu o sa settings).
-4. I-click ang **"Import mod"** (o ilagay ang buong folder/zip sa
-   Mindustry mods directory, karaniwan ay:
-   - Windows: `%appdata%/Mindustry/mods`
-   - Android: `/storage/emulated/0/Android/data/mindustry/files/mods`
-   - Linux: `~/.local/share/Mindustry/mods`
-5. I-restart ang Mindustry, i-enable ang mod sa Mods list.
+### 🗺️ **Content Browser**
+- **Map Browser:** Access a curated, community-driven repository of verified maps directly in-game. Filter by size, mode, planet, and version.
+- **Schematic Browser:** Explore a vast library of community-shared schematics. Preview, download, or copy them to your clipboard with one click.
+- **Direct Integration:** Seamlessly browse, search, and import content without ever leaving the game interface.
 
-## Ideas para paunlarin pa
-- Gawing craftable/buildable item (idagdag sa isang factory recipe).
-- Palitan ang visual marker ng permanenteng minimap overlay habang naka-hold
-  ang scanner.
-- Idagdag ang parehong logic bilang isang **Block** (hal. "Scanner Tower")
-  imbes na item, kung gusto mo itong structure-based sa halip na
-  inventory-based.
+### 🤖 **Automation (Autoplay)**
+- **Smart Task Management:** Automatically handles building support (Assist), repairing damaged structures, and resource mining.
+- **Dynamic AI Control:** The mod takes control of your unit, applying prioritized AI logic based on your current needs.
+- **Visual Feedback:** Real-time status icons show exactly what task your unit is currently performing.
 
-## Note
-Ang script (`scripts/main.js`) ay gamit ang Mindustry JS modding API
-(`Item`, `Events`, `Call`, `Vars`, `UnitTypes`). Kung may pagbabago sa API
-sa bagong Mindustry version, baka kailanganin ayusin ang ilang function
-calls (hal. `tile.overlay()`, `unit.stack`, `UnitTypes.mono.create()`)
-depende sa exact na version ng laro.
+### 📊 **Visualizers & HUD**
+- **Health Bars:** Highly customizable health and shield bars for units and buildings, with zoom-based visibility.
+- **Pathfinding Visualization:** See exactly where enemies are going with ground, water, and hover path predictions.
+- **Range Indicators:** Clear, dashed-circle indicators for turret ranges, unit reach, and building influence zones.
+- **Team Resource Tracking:** Keep a close eye on your team's resources with enhanced HUD elements.
 
-Para sa **Builder Drone**, ginamit natin ang `mono` bilang base unit type
-dahil built-in na dito ang "auto-assist nearby construction" na AI behavior
-sa vanilla Mindustry — kaya hindi na kailangan pang isulat mula zero ang
-buong pathfinding/build logic. Kung gusto mo ng ibang itsura o mas malakas
-na drone, pwede palitan ang `UnitTypes.mono` ng ibang unit type (hal.
-`UnitTypes.poly` para sa mas malaking build-assist unit).
+### 🪐 **Campaign Progression**
+- **Sector Tracking:** See at a glance how many sectors you've captured on the current planet, and the status of the one you're on.
+- **Wave Countdown:** A warning appears before the next wave lands, so you're never caught off guard mid-build.
+- **Resource Snapshot:** Quick view of your core's top stored items without opening a menu.
+- **Expansion Suggestions:** Highlights nearby unclaimed sectors worth attacking next.
+
+### 🛠️ **Quality of Life & Admin Tools**
+- **Smart Upgrade:** Instantly upgrade entire chains of distribution blocks (conveyors, ducts, etc.) with a single tap.
+- **God Mode:** A powerful suite for sandbox testing or server administration, including unit spawning, item injection, and team management.
+
+## **Installation:**
+
+1. Download the **Mindustry Tool mod** from this repository.
+2. Install the mod into your Mindustry game directory.
+3. Launch the game and access all features directly from the in-game menus.
+
+## **Join the Community:**
+
+- **Discord:** [Mindustry Tool](https://discord.gg/YGuBQ3g9fQ)
+- **Web:** [Mindustry Tool](https://mindustry-tool.com)
+
+If you like the mod, please give it a star on GitHub. Thank you for supporting **Mindustry Tool**!
+
+## **Credit to:**
+
+- **xpdustry:** for sharing claj
+
+**Translator:**
+
+| File                           | Language        | Discord username | GitHub username                                          |
+| ------------------------------ | --------------- | ---------------- | -------------------------------------------------------- |
+| [vi](/bundle_vi.properties)    | Tiếng Việt      | carrot_eo#0000   | [@junghamin1909](https://github.com/junghamin1909)       |
+| [cn](/bundle_zh_CN.properties) | 中文            | lao_hua_ji       | [@LaoHuaJiOfficial](https://github.com/LaoHuaJiOfficial) |
+| [ua](/bundle_uk_UA.properties) | украї́нська мо́ва | cergc            |                                                          |
+| [ko](/bundle_ko.properties)    | 한국어          | teong_geuri      |                                                          |
+| [be](/bundle_be.properties)    | беларуская мова | 4sterc4rd9102    |                                                          |
