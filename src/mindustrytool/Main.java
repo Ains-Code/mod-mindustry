@@ -27,6 +27,7 @@ import mindustrytool.features.display.range.RangeDisplay;
 import mindustrytool.features.display.progress.ProgressDisplay;
 import mindustrytool.features.display.quickaccess.QuickAccessFeature;
 import mindustrytool.features.settings.FeatureSettingDialog;
+import mindustrytool.features.conveyormaker.ConveyorMakerFeature;
 import mindustrytool.features.smartupgrade.SmartUpgradeFeature;
 import mindustrytool.features.time.TimeControlFeature;
 import mindustrytool.features.smartdrill.SmartDrillFeature;
@@ -133,6 +134,7 @@ public class Main extends Mod {
                 new GodModeFeature(),
                 new SmartDrillFeature(),
                 new SmartUpgradeFeature(),
+                new ConveyorMakerFeature(),
                 new BackgroundFeature(),
                 new MusicFeature(),
                 new ProgressDisplay(),
