@@ -1,6 +1,7 @@
 package mindustrytool.features.assistantbuilder;
 
 import arc.Core;
+import mindustry.gen.Icon;
 import mindustry.gen.Tex;
 import mindustry.ui.dialogs.BaseDialog;
 
@@ -21,6 +22,9 @@ public class AssistantBuilderSettingDialog extends BaseDialog {
             cont.add("@assistantbuilder.settings.disabled").row();
             return;
         }
+
+        cont.button("@assistantbuilder.settings.pick-button", Icon.paste, feature::openPicker)
+                .growX().pad(5).row();
 
         cont.pane(t -> {
             t.top();
