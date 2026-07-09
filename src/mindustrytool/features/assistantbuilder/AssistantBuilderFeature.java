@@ -133,7 +133,7 @@ public class AssistantBuilderFeature implements Feature {
             return;
         }
 
-        var plans = unit.team.data().plans;
+        var plans = unit.plans;
 
         for (Stile tile : schematic.tiles) {
             int localX = mirror ? (schematic.width - 1 - tile.x) : tile.x;
