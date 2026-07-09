@@ -1,0 +1,8 @@
+{
+  "name": "ore-scanner-tool",
+  "displayName": "Ore Scanner Tool",
+  "author": "You",
+  "description": "Dalawang tool item: (1) Ore Scanner - nagre-reveal ng ore deposits sa paligid, (2) Builder Drone Core - nagde-deploy ng helper drone na awtomatikong tutulong mag-build/repair.",
+  "version": "1.0",
+  "minGameVersion": "146"
+}
