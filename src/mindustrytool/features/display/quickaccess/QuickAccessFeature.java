@@ -5,8 +5,11 @@ import java.util.Optional;
 import arc.Core;
 import arc.Events;
 import arc.input.KeyCode;
+import arc.math.Interp;
 import arc.math.Mathf;
 import arc.graphics.Color;
+import arc.scene.Element;
+import arc.scene.actions.Actions;
 import arc.scene.event.InputEvent;
 import arc.scene.event.InputListener;
 import arc.scene.event.Touchable;
@@ -32,7 +35,14 @@ import mindustrytool.features.FeatureManager;
 import mindustrytool.features.FeatureMetadata;
 
 public class QuickAccessFeature extends Table implements Feature {
+    /** Duration of the collapse/expand cross-fade, in seconds. */
+    private static final float TOGGLE_FADE_OUT = 0.12f;
+    private static final float TOGGLE_FADE_IN = 0.2f;
+    /** Duration of the button hover "pop" effect, in seconds. */
+    private static final float HOVER_DURATION = 0.12f;
+
     private BaseDialog settingsDialog;
+    private boolean animating = false;
 
     @Override
     public FeatureMetadata getMetadata() {
@@ -65,9 +75,11 @@ public class QuickAccessFeature extends Table implements Feature {
     void rebuild() {
         clear();
 
+        boolean collapsed = QuickAccessConfig.collapsed();
+
         // Main container table that will be dragged
         Table container = new Table();
-        container.background(Styles.black6);
+        container.background(Tex.pane);
         container.setColor(1f, 1f, 1f, QuickAccessConfig.opacity());
         container.touchable = Touchable.enabled; // Container catches touches
 
@@ -76,40 +88,42 @@ public class QuickAccessFeature extends Table implements Feature {
         float margin = 8f * scale;
 
         // 1. Anchor (Draggable only)
-        container.button(Icon.move, Styles.clearNonei, () -> {
+        Button anchor = container.button(Icon.move, Styles.clearNonei, () -> {
         })
                 .size(buttonSize)
                 .margin(margin)
-                .get()
-                .addListener(new InputListener() {
-                    float lastX, lastY;
+                .tooltip("@quickaccess.drag")
+                .get();
 
-                    @Override
-                    public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button) {
-                        lastX = x;
-                        lastY = y;
-                        return true;
-                    }
+        anchor.addListener(new InputListener() {
+            float lastX, lastY;
 
-                    @Override
-                    public void touchDragged(InputEvent event, float x, float y, int pointer) {
-                        try {
-                            moveBy(x - lastX, y - lastY);
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button) {
+                lastX = x;
+                lastY = y;
+                return true;
+            }
 
-                            float sw = Core.graphics.getWidth();
-                            float sh = Core.graphics.getHeight();
+            @Override
+            public void touchDragged(InputEvent event, float x, float y, int pointer) {
+                try {
+                    moveBy(x - lastX, y - lastY);
 
-                            QuickAccessFeature.this.x = Mathf.clamp(QuickAccessFeature.this.x, 0, sw - 40f);
-                            QuickAccessFeature.this.y = Mathf.clamp(QuickAccessFeature.this.y, 0, sh - 40f);
+                    float sw = Core.graphics.getWidth();
+                    float sh = Core.graphics.getHeight();
 
-                            QuickAccessConfig.x(QuickAccessFeature.this.x);
-                            QuickAccessConfig.y(QuickAccessFeature.this.y);
-                            keepInScreen();
-                        } catch (Exception e) {
-                            Log.err(e);
-                        }
-                    }
-                });
+                    QuickAccessFeature.this.x = Mathf.clamp(QuickAccessFeature.this.x, 0, sw - 40f);
+                    QuickAccessFeature.this.y = Mathf.clamp(QuickAccessFeature.this.y, 0, sh - 40f);
+
+                    QuickAccessConfig.x(QuickAccessFeature.this.x);
+                    QuickAccessConfig.y(QuickAccessFeature.this.y);
+                    keepInScreen();
+                } catch (Exception e) {
+                    Log.err(e);
+                }
+            }
+        });
 
         float sw = Core.graphics.getWidth();
         float sh = Core.graphics.getHeight();
@@ -120,19 +134,70 @@ public class QuickAccessFeature extends Table implements Feature {
         QuickAccessConfig.x(QuickAccessFeature.this.x);
         QuickAccessConfig.y(QuickAccessFeature.this.y);
 
-        // 2. Separator
-        Image sep = new Image(Tex.whiteui);
-        sep.setColor(mindustry.graphics.Pal.accent);
-        container.add(sep).width(2f).fillY();
+        // 2. Collapse / expand toggle - always visible so the panel can be
+        // recovered even when its content is hidden.
+        Button toggle = container.button(collapsed ? Icon.right : Icon.left, Styles.clearNonei,
+                this::toggleCollapsed)
+                .size(buttonSize)
+                .margin(margin)
+                .tooltip(collapsed ? "@quickaccess.expand" : "@quickaccess.collapse")
+                .get();
+        addHoverPop(toggle);
 
-        // 3. Content (Always visible)
-        Table content = new Table();
-        populateContent(content);
-        container.add(content);
+        if (!collapsed) {
+            // 3. Separator
+            Image sep = new Image(Tex.whiteui);
+            sep.setColor(Pal.accent);
+            container.add(sep).width(2f).fillY().pad(2f);
+
+            // 4. Content (feature buttons + settings)
+            Table content = new Table();
+            populateContent(content);
+            container.add(content);
+        }
 
         add(container).pad(0).margin(0);
         pack();
         keepInScreen();
+    }
+
+    /** Smoothly hides or reveals the button grid via a short cross-fade. */
+    private void toggleCollapsed() {
+        if (animating) {
+            return;
+        }
+
+        boolean newState = !QuickAccessConfig.collapsed();
+        QuickAccessConfig.collapsed(newState);
+
+        animating = true;
+        clearActions();
+        actions(
+                Actions.fadeOut(TOGGLE_FADE_OUT, Interp.pow2In),
+                Actions.run(() -> {
+                    rebuild();
+                    color.a = 0f;
+                }),
+                Actions.fadeIn(TOGGLE_FADE_IN, Interp.pow2Out),
+                Actions.run(() -> animating = false));
+    }
+
+    /** Adds a subtle scale-up "pop" on hover/press for extra tactile feedback. */
+    private void addHoverPop(Element element) {
+        element.setTransform(true);
+        element.addListener(new InputListener() {
+            @Override
+            public void enter(InputEvent event, float x, float y, int pointer, Element fromActor) {
+                element.clearActions();
+                element.actions(Actions.scaleTo(1.12f, 1.12f, HOVER_DURATION, Interp.pow2Out));
+            }
+
+            @Override
+            public void exit(InputEvent event, float x, float y, int pointer, Element toActor) {
+                element.clearActions();
+                element.actions(Actions.scaleTo(1f, 1f, HOVER_DURATION, Interp.pow2Out));
+            }
+        });
     }
 
     public void keepInScreen() {
@@ -155,8 +220,6 @@ public class QuickAccessFeature extends Table implements Feature {
     }
 
     private void populateContent(Table t) {
-        t.background(Styles.black6);
-
         Seq<Feature> features = FeatureManager.getInstance().getFeatures();
         int i = 0;
         int cols = QuickAccessConfig.cols();
@@ -186,7 +249,7 @@ public class QuickAccessFeature extends Table implements Feature {
             btnRef[0] = t.button(b -> {
                 b.image(meta.icon())
                         .scaling(Scaling.fit)
-                        .update(l -> l.setColor(f.isEnabled() ? Color.white : Pal.gray));
+                        .update(l -> l.setColor(f.isEnabled() ? Pal.accent : Pal.gray));
             }, Styles.clearNonei, () -> {
                 if (!longPressed[0]) {
                     FeatureManager.getInstance().toggle(f);
@@ -196,6 +259,8 @@ public class QuickAccessFeature extends Table implements Feature {
                     .margin(margin)
                     .tooltip(meta.name())
                     .get();
+
+            addHoverPop(btnRef[0]);
 
             btnRef[0].update(() -> {
                 if (btnRef[0].isPressed()) {
@@ -215,13 +280,14 @@ public class QuickAccessFeature extends Table implements Feature {
                 t.row();
         }
 
-        t
+        Button settingsBtn = t
                 .button(b -> b.image(Utils.scalable(Icon.settings)).scaling(Scaling.fit), Styles.clearNonei, () -> {
                     Main.featureSettingDialog.show();
                 })
                 .size(buttonSize)
                 .margin(margin)
                 .get();
+        addHoverPop(settingsBtn);
     }
 
     @Override
@@ -232,7 +298,14 @@ public class QuickAccessFeature extends Table implements Feature {
 
             name = "quick-access-hud";
             visible(() -> Vars.ui.hudfrag.shown && Vars.state.isGame());
-            Core.app.post(() -> Vars.ui.hudGroup.addChild(this));
+
+            Core.app.post(() -> {
+                Vars.ui.hudGroup.addChild(this);
+                // Smooth fade-in the first time the panel appears.
+                color.a = 0f;
+                clearActions();
+                actions(Actions.fadeIn(0.3f, Interp.pow2Out));
+            });
         }
     }
 
