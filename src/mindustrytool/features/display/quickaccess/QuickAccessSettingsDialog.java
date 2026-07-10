@@ -10,7 +10,10 @@ import arc.scene.ui.layout.Scl;
 import arc.scene.ui.layout.Table;
 import arc.struct.Seq;
 import arc.util.Align;
+import arc.util.Scaling;
 import mindustry.Vars;
+import mindustry.gen.Icon;
+import mindustry.graphics.Pal;
 import mindustry.ui.Styles;
 import mindustry.ui.dialogs.BaseDialog;
 import mindustrytool.features.Feature;
@@ -56,11 +59,23 @@ public class QuickAccessSettingsDialog extends BaseDialog {
         addSlider(table, "@columns", 1, 9, 1, QuickAccessConfig.cols(), false,
                 v -> QuickAccessConfig.cols((int) (float) v), quickAccessHud);
 
-        table.check("@quickaccess.collapse", QuickAccessConfig.collapsed(), collapsed -> {
-            QuickAccessConfig.collapsed(collapsed);
-            quickAccessHud.rebuild();
-        }).fillX().top().left().pad(5).get().left();
-        table.row();
+        Table visibilityRow = new Table();
+        visibilityRow.left();
+        visibilityRow.labelWrap("@quickaccess.collapse").left().growX().padRight(10);
+
+        boolean[] collapsedState = { QuickAccessConfig.collapsed() };
+        visibilityRow.button(b -> b.image(Icon.eye)
+                .scaling(Scaling.fit)
+                .update(img -> img.setColor(collapsedState[0] ? Pal.gray : Pal.accent)),
+                Styles.clearNonei, () -> {
+                    collapsedState[0] = !collapsedState[0];
+                    QuickAccessConfig.collapsed(collapsedState[0]);
+                    quickAccessHud.rebuild();
+                })
+                .size(Vars.mobile ? 48f : 40f)
+                .tooltip("@quickaccess.collapse");
+
+        table.add(visibilityRow).growX().pad(5).row();
 
         table.image().color(Color.gray).height(2).growX().pad(5).row();
         table.add("@features").style(Styles.outlineLabel).left().pad(5).row();
