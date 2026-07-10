@@ -135,9 +135,11 @@ public class QuickAccessFeature extends Table implements Feature {
         QuickAccessConfig.y(QuickAccessFeature.this.y);
 
         // 2. Collapse / expand toggle - always visible so the panel can be
-        // recovered even when its content is hidden.
-        Button toggle = container.button(collapsed ? Icon.right : Icon.left, Styles.clearNonei,
-                this::toggleCollapsed)
+        // recovered even when its content is hidden. Tinted like an on/off
+        // switch: accent = expanded, gray = collapsed.
+        Button toggle = container.button(b -> b.image(collapsed ? Icon.right : Icon.left)
+                .scaling(Scaling.fit)
+                .color(collapsed ? Pal.gray : Pal.accent), Styles.clearNonei, this::toggleCollapsed)
                 .size(buttonSize)
                 .margin(margin)
                 .tooltip(collapsed ? "@quickaccess.expand" : "@quickaccess.collapse")
@@ -321,4 +323,4 @@ public class QuickAccessFeature extends Table implements Feature {
         }
         return Optional.of(settingsDialog);
     }
-}
+    }
