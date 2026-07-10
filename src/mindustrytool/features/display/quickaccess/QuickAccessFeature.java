@@ -82,7 +82,28 @@ public class QuickAccessFeature extends Table implements Feature {
         Core.app.post(() -> rebuild());
     }
 
+    /**
+     * Safe entry point: never lets a layout bug escape and take down the whole
+     * game (which would trip the mod's crash detector and auto-disable every
+     * other feature, including unrelated HUD elements like the health bar and
+     * armed indicator). On failure we log and fall back to an empty widget
+     * instead of propagating the exception.
+     */
     void rebuild() {
+        try {
+            rebuildUnsafe();
+        } catch (Exception e) {
+            Log.err("[QuickAccessFeature] rebuild() failed, showing empty widget instead of crashing", e);
+            try {
+                clear();
+                pack();
+            } catch (Exception ignored) {
+                // Even the fallback failed; nothing more we can safely do here.
+            }
+        }
+    }
+
+    private void rebuildUnsafe() {
         clear();
 
         boolean collapsed = QuickAccessConfig.collapsed();
@@ -247,49 +268,13 @@ public class QuickAccessFeature extends Table implements Feature {
                 continue;
             }
 
-            FeatureMetadata meta = f.getMetadata();
-
-            if (!meta.quickAccess()) {
-                continue;
+            try {
+                addFeatureButton(t, f, buttonSize, margin);
+            } catch (Exception e) {
+                // Isolate per-feature failures so one broken button doesn't take
+                // down the whole panel (and, transitively, the rest of the HUD).
+                Log.err("[QuickAccessFeature] failed to add button for " + f.getClass().getSimpleName(), e);
             }
-
-            if (!QuickAccessConfig.isFeatureVisible(meta.name())) {
-                continue;
-            }
-
-            Button[] btnRef = new Button[1];
-            long[] pressTime = { -1 };
-            boolean[] longPressed = { false };
-
-            btnRef[0] = t.button(b -> {
-                b.image(meta.icon())
-                        .scaling(Scaling.fit)
-                        .update(l -> l.setColor(f.isEnabled() ? ACCENT : Pal.gray));
-            }, Styles.clearNonei, () -> {
-                if (!longPressed[0]) {
-                    FeatureManager.getInstance().toggle(f);
-                }
-            })
-                    .size(buttonSize)
-                    .margin(margin)
-                    .tooltip(meta.name())
-                    .get();
-
-            addHoverPop(btnRef[0]);
-
-            btnRef[0].update(() -> {
-                if (btnRef[0].isPressed()) {
-                    if (pressTime[0] == -1) {
-                        pressTime[0] = Time.millis();
-                        longPressed[0] = false;
-                    } else if (!longPressed[0] && Time.timeSinceMillis(pressTime[0]) >= 300) {
-                        longPressed[0] = true;
-                        f.setting().ifPresent(Dialog::show);
-                    }
-                } else {
-                    pressTime[0] = -1;
-                }
-            });
         }
 
         Button settingsBtn = t
@@ -302,6 +287,52 @@ public class QuickAccessFeature extends Table implements Feature {
         addHoverPop(settingsBtn);
     }
 
+    private void addFeatureButton(Table t, Feature f, float buttonSize, float margin) {
+        FeatureMetadata meta = f.getMetadata();
+
+        if (!meta.quickAccess()) {
+            return;
+        }
+
+        if (!QuickAccessConfig.isFeatureVisible(meta.name())) {
+            return;
+        }
+
+        Button[] btnRef = new Button[1];
+        long[] pressTime = { -1 };
+        boolean[] longPressed = { false };
+
+        btnRef[0] = t.button(b -> {
+            b.image(meta.icon())
+                    .scaling(Scaling.fit)
+                    .update(l -> l.setColor(f.isEnabled() ? ACCENT : Pal.gray));
+        }, Styles.clearNonei, () -> {
+            if (!longPressed[0]) {
+                FeatureManager.getInstance().toggle(f);
+            }
+        })
+                .size(buttonSize)
+                .margin(margin)
+                .tooltip(meta.name())
+                .get();
+
+        addHoverPop(btnRef[0]);
+
+        btnRef[0].update(() -> {
+            if (btnRef[0].isPressed()) {
+                if (pressTime[0] == -1) {
+                    pressTime[0] = Time.millis();
+                    longPressed[0] = false;
+                } else if (!longPressed[0] && Time.timeSinceMillis(pressTime[0]) >= 300) {
+                    longPressed[0] = true;
+                    f.setting().ifPresent(Dialog::show);
+                }
+            } else {
+                pressTime[0] = -1;
+            }
+        });
+    }
+
     @Override
     public void onEnable() {
         if (Vars.ui != null && Vars.ui.hudGroup != null) {
@@ -309,14 +340,25 @@ public class QuickAccessFeature extends Table implements Feature {
             remove();
 
             name = "quick-access-hud";
-            visible(() -> Vars.ui.hudfrag.shown && Vars.state.isGame());
+            visible(() -> {
+                try {
+                    return Vars.ui.hudfrag.shown && Vars.state.isGame();
+                } catch (Exception e) {
+                    // Never let a visibility check crash the frame; default to hidden.
+                    return false;
+                }
+            });
 
             Core.app.post(() -> {
-                Vars.ui.hudGroup.addChild(this);
-                // Smooth fade-in the first time the panel appears.
-                color.a = 0f;
-                clearActions();
-                addAction(Actions.fadeIn(0.3f, Interp.pow2Out));
+                try {
+                    Vars.ui.hudGroup.addChild(this);
+                    // Smooth fade-in the first time the panel appears.
+                    color.a = 0f;
+                    clearActions();
+                    addAction(Actions.fadeIn(0.3f, Interp.pow2Out));
+                } catch (Exception e) {
+                    Log.err("[QuickAccessFeature] failed to attach to hudGroup", e);
+                }
             });
         }
     }
