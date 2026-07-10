@@ -1,10 +1,16 @@
 package mindustrytool.features.display.quickaccess;
 
+import java.util.function.Consumer;
+
+import arc.Core;
 import arc.graphics.Color;
 import arc.scene.ui.Label;
 import arc.scene.ui.Slider;
+import arc.scene.ui.layout.Scl;
 import arc.scene.ui.layout.Table;
 import arc.struct.Seq;
+import arc.util.Align;
+import mindustry.Vars;
 import mindustry.ui.Styles;
 import mindustry.ui.dialogs.BaseDialog;
 import mindustrytool.features.Feature;
@@ -12,6 +18,9 @@ import mindustrytool.features.FeatureManager;
 import mindustrytool.features.FeatureMetadata;
 
 public class QuickAccessSettingsDialog extends BaseDialog {
+
+    /** On phones, stack "label" above "slider + value" so nothing runs off-screen. */
+    private static final boolean STACKED = Vars.mobile;
 
     public QuickAccessSettingsDialog(QuickAccessFeature quickAccessHud) {
         super("@settings");
@@ -22,72 +31,36 @@ public class QuickAccessSettingsDialog extends BaseDialog {
 
         Table table = new Table();
 
+        // Cap the width to the visible screen (scaled) rather than a flat 800 so it
+        // never has to be squeezed or clipped on a narrow Android portrait screen.
+        float maxWidth = Math.min(800f, Core.graphics.getWidth() / Scl.scl() * 0.95f);
+
         cont.pane(table)
                 .center()
-                .maxWidth(800)
+                .maxWidth(maxWidth)
                 .grow();
+
+        table.defaults().growX();
 
         table.add("@settings").style(Styles.outlineLabel).left().pad(5).row();
 
-        Table opacityTable = new Table();
-        opacityTable.left();
-        opacityTable.add("@opacity").left().padRight(10);
-        Slider opacitySlider = new Slider(0.05f, 1f, 0.05f, false);
-        opacitySlider.setValue(QuickAccessConfig.opacity());
-        Label opacityLabel = new Label(String.format("%.0f%%", QuickAccessConfig.opacity() * 100));
-        opacitySlider.changed(() -> {
-            QuickAccessConfig.opacity(opacitySlider.getValue());
-            opacityLabel.setText(String.format("%.0f%%", QuickAccessConfig.opacity() * 100));
-            quickAccessHud.rebuild();
-        });
-        opacityTable.add(opacitySlider).width(200f);
-        opacityTable.add(opacityLabel).padLeft(10);
-        table.add(opacityTable).left().pad(5).row();
+        addSlider(table, "@opacity", 0.05f, 1f, 0.05f, QuickAccessConfig.opacity(), true,
+                v -> QuickAccessConfig.opacity(v), quickAccessHud);
 
-        Table scaleTable = new Table();
-        scaleTable.left();
-        scaleTable.add("@scale").left().padRight(10);
-        Slider scaleSlider = new Slider(0.5f, 1.5f, 0.1f, false);
-        scaleSlider.setValue(QuickAccessConfig.scale());
-        Label scaleLabel = new Label(String.format("%.0f%%", QuickAccessConfig.scale() * 100));
-        scaleSlider.changed(() -> {
-            QuickAccessConfig.scale(scaleSlider.getValue());
-            scaleLabel.setText(String.format("%.0f%%", QuickAccessConfig.scale() * 100));
-            quickAccessHud.rebuild();
-        });
-        scaleTable.add(scaleSlider).width(200f);
-        scaleTable.add(scaleLabel).padLeft(10);
-        table.add(scaleTable).left().pad(5).row();
+        addSlider(table, "@scale", 0.5f, 1.5f, 0.1f, QuickAccessConfig.scale(), true,
+                v -> QuickAccessConfig.scale(v), quickAccessHud);
 
-        Table widthTable = new Table();
-        widthTable.left();
-        widthTable.add("@width").left().padRight(10);
-        Slider widthSlider = new Slider(0.5f, 2.0f, 0.1f, false);
-        widthSlider.setValue(QuickAccessConfig.width());
-        Label widthLabel = new Label(String.format("%.0f%%", QuickAccessConfig.width() * 100));
-        widthSlider.changed(() -> {
-            QuickAccessConfig.width(widthSlider.getValue());
-            widthLabel.setText(String.format("%.0f%%", QuickAccessConfig.width() * 100));
-            quickAccessHud.rebuild();
-        });
-        widthTable.add(widthSlider).width(200f);
-        widthTable.add(widthLabel).padLeft(10);
-        table.add(widthTable).left().pad(5).row();
+        addSlider(table, "@width", 0.5f, 2.0f, 0.1f, QuickAccessConfig.width(), true,
+                v -> QuickAccessConfig.width(v), quickAccessHud);
 
-        Table colsTable = new Table();
-        colsTable.left();
-        colsTable.add("@columns").left().padRight(10);
-        Slider colsSlider = new Slider(1, 9, 1, false);
-        colsSlider.setValue(QuickAccessConfig.cols());
-        Label colsLabel = new Label(String.valueOf(QuickAccessConfig.cols()));
-        colsSlider.changed(() -> {
-            QuickAccessConfig.cols((int) colsSlider.getValue());
-            colsLabel.setText(String.valueOf((int) colsSlider.getValue()));
+        addSlider(table, "@columns", 1, 9, 1, QuickAccessConfig.cols(), false,
+                v -> QuickAccessConfig.cols((int) (float) v), quickAccessHud);
+
+        table.check("@quickaccess.collapse", QuickAccessConfig.collapsed(), collapsed -> {
+            QuickAccessConfig.collapsed(collapsed);
             quickAccessHud.rebuild();
-        });
-        colsTable.add(colsSlider).width(200f);
-        colsTable.add(colsLabel).padLeft(10);
-        table.add(colsTable).left().pad(5).row();
+        }).fillX().top().left().pad(5).get().left();
+        table.row();
 
         table.image().color(Color.gray).height(2).growX().pad(5).row();
         table.add("@features").style(Styles.outlineLabel).left().pad(5).row();
@@ -107,7 +80,7 @@ public class QuickAccessSettingsDialog extends BaseDialog {
             table.check(meta.name(), QuickAccessConfig.isFeatureVisible(meta.name()), visible -> {
                 QuickAccessConfig.setFeatureVisible(meta.name(), visible);
                 quickAccessHud.rebuild();
-            }).fillX().top().left().pad(5).get().left();
+            }).fillX().top().left().pad(Vars.mobile ? 8f : 5f).get().left();
 
             table.row();
         }
@@ -115,6 +88,52 @@ public class QuickAccessSettingsDialog extends BaseDialog {
         table.button("@reset", () -> {
             QuickAccessConfig.x(0);
             QuickAccessConfig.y(0);
-        }).fillX().top().left().pad(5).get().left();
+            QuickAccessConfig.collapsed(false);
+            quickAccessHud.rebuild();
+        }).fillX().top().left().pad(5).height(Vars.mobile ? 56f : 44f).get().left();
+    }
+
+    /**
+     * Adds a labelled slider row that adapts to the available width: a compact
+     * single line on desktop, and a wrapped label stacked above a full-width
+     * slider on mobile so long translated strings never get clipped.
+     */
+    private void addSlider(Table table, String labelKey, float min, float max, float step,
+            float initial, boolean percent, Consumer<Float> onChange, QuickAccessFeature quickAccessHud) {
+
+        Table row = new Table();
+        row.left();
+
+        Slider slider = new Slider(min, max, step, false);
+        slider.setValue(initial);
+
+        Label valueLabel = new Label(formatValue(initial, percent));
+        valueLabel.setAlignment(Align.right);
+
+        slider.changed(() -> {
+            float v = slider.getValue();
+            onChange.accept(v);
+            valueLabel.setText(formatValue(v, percent));
+            quickAccessHud.rebuild();
+        });
+
+        if (STACKED) {
+            row.labelWrap(labelKey).left().growX().padBottom(4f).row();
+
+            Table sliderRow = new Table();
+            sliderRow.add(slider).growX();
+            sliderRow.add(valueLabel).padLeft(10).minWidth(54f);
+            row.add(sliderRow).growX();
+        } else {
+            row.labelWrap(labelKey).left().padRight(10).width(110f);
+            row.add(slider).growX();
+            row.add(valueLabel).padLeft(10).minWidth(54f);
+        }
+
+        table.add(row).growX().pad(5).row();
+    }
+
+    private static String formatValue(float value, boolean percent) {
+        return percent ? String.format("%.0f%%", value * 100) : String.valueOf((int) value);
     }
 }
