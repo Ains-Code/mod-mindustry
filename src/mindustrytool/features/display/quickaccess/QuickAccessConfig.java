@@ -58,6 +58,14 @@ public class QuickAccessConfig {
         Core.settings.put("mindustrytool.quick-access.cols", value);
     }
 
+    public static boolean collapsed() {
+        return Core.settings.getBool("mindustrytool.quick-access.collapsed", false);
+    }
+
+    public static void collapsed(boolean value) {
+        Core.settings.put("mindustrytool.quick-access.collapsed", value);
+    }
+
     public static boolean isFeatureVisible(String name) {
         String hidden = Core.settings.getString("mindustrytool.quick-access.hidden", "");
         if (hidden.isEmpty())
