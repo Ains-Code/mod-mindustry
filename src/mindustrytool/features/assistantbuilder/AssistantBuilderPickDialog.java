@@ -19,6 +19,21 @@ public class AssistantBuilderPickDialog extends BaseDialog {
 
         cont.add("@assistantbuilder.pick.hint").left().padBottom(10).row();
 
+        cont.add("@assistantbuilder.pick.builtin-label").left().padBottom(6).row();
+
+        cont.pane(t -> {
+            t.top();
+
+            BuiltinSchematics.all().each(schematic -> {
+                t.button(schematic.name(), Icon.hammer, () -> {
+                    feature.arm(schematic);
+                    hide();
+                }).growX().pad(5).row();
+            });
+        }).growX().padBottom(14).row();
+
+        cont.add("@assistantbuilder.pick.saved-label").left().padBottom(6).row();
+
         var schematics = Vars.schematics.all();
 
         if (schematics.isEmpty()) {
