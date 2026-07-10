@@ -3,6 +3,7 @@ package mindustrytool.features.assistantbuilder;
 import arc.Core;
 import mindustry.gen.Icon;
 import mindustry.gen.Tex;
+import mindustry.ui.Styles;
 import mindustry.ui.dialogs.BaseDialog;
 
 public class AssistantBuilderSettingDialog extends BaseDialog {
@@ -25,6 +26,16 @@ public class AssistantBuilderSettingDialog extends BaseDialog {
 
         cont.button("@assistantbuilder.settings.pick-button", Icon.paste, feature::openPicker)
                 .growX().pad(5).row();
+
+        cont.table(row -> {
+            row.left();
+            row.add("@assistantbuilder.settings.row-count-label").left().padRight(10);
+            row.label(() -> String.valueOf(feature.getRowCount())).padRight(10).width(20);
+            row.button(Icon.left, Styles.emptyi, () -> feature.setRowCount(feature.getRowCount() - 1))
+                    .size(32f);
+            row.button(Icon.right, Styles.emptyi, () -> feature.setRowCount(feature.getRowCount() + 1))
+                    .size(32f);
+        }).growX().pad(5).row();
 
         cont.pane(t -> {
             t.top();
