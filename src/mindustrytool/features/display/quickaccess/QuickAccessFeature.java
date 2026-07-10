@@ -172,30 +172,30 @@ public class QuickAccessFeature extends Table implements Feature {
 
         animating = true;
         clearActions();
-        actions(
+        addAction(Actions.sequence(
                 Actions.fadeOut(TOGGLE_FADE_OUT, Interp.pow2In),
                 Actions.run(() -> {
                     rebuild();
                     color.a = 0f;
                 }),
                 Actions.fadeIn(TOGGLE_FADE_IN, Interp.pow2Out),
-                Actions.run(() -> animating = false));
+                Actions.run(() -> animating = false)));
     }
 
     /** Adds a subtle scale-up "pop" on hover/press for extra tactile feedback. */
-    private void addHoverPop(Element element) {
+    private void addHoverPop(Button element) {
         element.setTransform(true);
         element.addListener(new InputListener() {
             @Override
             public void enter(InputEvent event, float x, float y, int pointer, Element fromActor) {
                 element.clearActions();
-                element.actions(Actions.scaleTo(1.12f, 1.12f, HOVER_DURATION, Interp.pow2Out));
+                element.addAction(Actions.scaleTo(1.12f, 1.12f, HOVER_DURATION, Interp.pow2Out));
             }
 
             @Override
             public void exit(InputEvent event, float x, float y, int pointer, Element toActor) {
                 element.clearActions();
-                element.actions(Actions.scaleTo(1f, 1f, HOVER_DURATION, Interp.pow2Out));
+                element.addAction(Actions.scaleTo(1f, 1f, HOVER_DURATION, Interp.pow2Out));
             }
         });
     }
@@ -304,7 +304,7 @@ public class QuickAccessFeature extends Table implements Feature {
                 // Smooth fade-in the first time the panel appears.
                 color.a = 0f;
                 clearActions();
-                actions(Actions.fadeIn(0.3f, Interp.pow2Out));
+                addAction(Actions.fadeIn(0.3f, Interp.pow2Out));
             });
         }
     }
