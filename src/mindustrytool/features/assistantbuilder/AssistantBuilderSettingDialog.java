@@ -37,6 +37,17 @@ public class AssistantBuilderSettingDialog extends BaseDialog {
                     .size(32f);
         }).growX().pad(5).row();
 
+        cont.image().color(arc.graphics.Color.gray).growX().height(2f).pad(8).row();
+
+        cont.check("@assistantbuilder.settings.auto-build", feature.isAutoBuild(), feature::setAutoBuild)
+                .left().pad(5).row();
+        cont.check("@assistantbuilder.settings.auto-repair", feature.isAutoRepair(), feature::setAutoRepair)
+                .left().pad(5).row();
+
+        cont.add("@assistantbuilder.settings.auto-note").left().wrap().width(360f).pad(5).row();
+
+        cont.image().color(arc.graphics.Color.gray).growX().height(2f).pad(8).row();
+
         cont.pane(t -> {
             t.top();
             t.add("@assistantbuilder.settings.style-label").left().padBottom(10).row();
