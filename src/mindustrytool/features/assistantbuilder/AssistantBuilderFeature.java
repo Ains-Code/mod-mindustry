@@ -12,12 +12,14 @@ import arc.scene.event.Touchable;
 import arc.scene.ui.Dialog;
 import arc.scene.ui.layout.Table;
 import arc.struct.Seq;
+import arc.util.Time;
 import mindustry.Vars;
-import mindustry.entities.units.BuildPlan;
 import mindustry.game.EventType.Trigger;
 import mindustry.game.Schematic;
 import mindustry.game.Schematic.Stile;
 import mindustry.game.Team;
+import mindustry.game.Teams.BlockPlan;
+import mindustry.gen.Groups;
 import mindustry.gen.Icon;
 import mindustry.graphics.Layer;
 import mindustry.graphics.Pal;
@@ -32,13 +34,31 @@ import mindustrytool.features.FeatureMetadata;
 public class AssistantBuilderFeature implements Feature {
     private static final String STYLE_SETTING_KEY = "mindustrytool.assistantbuilder.style";
     private static final String ROW_COUNT_SETTING_KEY = "mindustrytool.assistantbuilder.row-count";
+    private static final String AUTO_BUILD_SETTING_KEY = "mindustrytool.assistantbuilder.auto-build";
+    private static final String AUTO_REPAIR_SETTING_KEY = "mindustrytool.assistantbuilder.auto-repair";
     private static final int MAX_ROW_COUNT = 10;
+
+    private static final float AUTO_BUILD_INTERVAL = 30f;
+    private static final float AUTO_REPAIR_INTERVAL = 60f;
+    private static final int MAX_AUTO_BUILD_RADIUS_TILES = 250;
+    private static final float AUTO_REPAIR_RADIUS_TILES = 80f;
+    private static final int AUTO_BUILD_ATTEMPTS_PER_TICK = 8;
 
     private ArchitecturalStyle style = readSavedStyle();
     private AssistantBuilderSettingDialog settingDialog;
     private AssistantBuilderPickDialog pickDialog;
+
     private Schematic armed;
+    private Schematic selectedSchematic;
+
     private Table armedIndicator;
+
+    private boolean autoBuild = Core.settings.getBool(AUTO_BUILD_SETTING_KEY, false);
+    private boolean autoRepair = Core.settings.getBool(AUTO_REPAIR_SETTING_KEY, false);
+    private float autoBuildCooldown;
+    private float autoRepairCooldown;
+
+    private int spiralX, spiralY, spiralDX = 1, spiralDY = 0, spiralLegLength = 1, spiralLegProgress, spiralTurns;
 
     @Override
     public FeatureMetadata getMetadata() {
@@ -56,38 +76,122 @@ public class AssistantBuilderFeature implements Feature {
         MdtKeybinds.addFeatureKeyBind(this, MdtKeybinds.assistantBuilderKb);
 
         Events.run(Trigger.update, () -> {
-            if (!isEnabled() || armed == null) {
+            if (!isEnabled() || !Vars.state.isGame()) {
                 return;
             }
 
-            if (!Vars.state.isGame() || Core.scene.hasField() || Core.scene.hasDialog()) {
-                return;
-            }
-
-            if (Core.input.keyTap(KeyCode.escape) || Core.input.keyTap(KeyCode.back)) {
-                disarm();
-                return;
-            }
-
-            if (Core.input.justTouched()) {
-                var world = Core.input.mouseWorld();
-                int tileX = Mathf.round(world.x / Vars.tilesize);
-                int tileY = Mathf.round(world.y / Vars.tilesize);
-
-                boolean placed = getRowCount() > 1
-                        ? queueRow(armed, tileX, tileY, getRowCount())
-                        : queueBuild(armed, tileX, tileY);
-
-                if (placed) {
-                    disarm();
-                    Vars.ui.showInfoToast("@assistantbuilder.toast.queued", 2f);
-                } else {
-                    Vars.ui.showInfoToast("@assistantbuilder.toast.invalid", 2f);
-                }
-            }
+            updateManualArm();
+            updateAutoBuild();
+            updateAutoRepair();
         });
 
         Events.run(Trigger.draw, this::drawGhost);
+    }
+
+    private void updateManualArm() {
+        if (armed == null) {
+            return;
+        }
+
+        if (Core.scene.hasField() || Core.scene.hasDialog()) {
+            return;
+        }
+
+        if (Core.input.keyTap(KeyCode.escape) || Core.input.keyTap(KeyCode.back)) {
+            armed = null;
+            return;
+        }
+
+        if (Core.input.justTouched()) {
+            var world = Core.input.mouseWorld();
+            int tileX = Mathf.round(world.x / Vars.tilesize);
+            int tileY = Mathf.round(world.y / Vars.tilesize);
+
+            boolean placed = getRowCount() > 1
+                    ? queueRow(armed, tileX, tileY, getRowCount())
+                    : queueBuild(armed, tileX, tileY);
+
+            armed = null;
+
+            Vars.ui.showInfoToast(placed ? "@assistantbuilder.toast.queued" : "@assistantbuilder.toast.invalid", 2f);
+        }
+    }
+
+    private void updateAutoBuild() {
+        if (!autoBuild || selectedSchematic == null) {
+            return;
+        }
+
+        autoBuildCooldown -= Time.delta;
+        if (autoBuildCooldown > 0) {
+            return;
+        }
+        autoBuildCooldown = AUTO_BUILD_INTERVAL;
+
+        var core = Vars.player.team().core();
+        if (core == null) {
+            return;
+        }
+
+        int stepW = selectedSchematic.width + Math.max(style.spacing, 1);
+        int stepH = selectedSchematic.height + Math.max(style.spacing, 1);
+
+        for (int attempt = 0; attempt < AUTO_BUILD_ATTEMPTS_PER_TICK; attempt++) {
+            int cellX = spiralX;
+            int cellY = spiralY;
+            advanceSpiral();
+
+            if (Math.abs(cellX) * (long) stepW > MAX_AUTO_BUILD_RADIUS_TILES
+                    || Math.abs(cellY) * (long) stepH > MAX_AUTO_BUILD_RADIUS_TILES) {
+                continue;
+            }
+
+            int originX = core.tileX() + cellX * stepW;
+            int originY = core.tileY() + cellY * stepH;
+
+            if (queueBuild(selectedSchematic, originX, originY)) {
+                return;
+            }
+        }
+    }
+
+    private void updateAutoRepair() {
+        if (!autoRepair) {
+            return;
+        }
+
+        autoRepairCooldown -= Time.delta;
+        if (autoRepairCooldown > 0) {
+            return;
+        }
+        autoRepairCooldown = AUTO_REPAIR_INTERVAL;
+
+        var core = Vars.player.team().core();
+        if (core == null) {
+            return;
+        }
+
+        Team team = Vars.player.team();
+        var plans = team.data().plans;
+        float radiusSq = AUTO_REPAIR_RADIUS_TILES * AUTO_REPAIR_RADIUS_TILES;
+
+        for (var building : Groups.build) {
+            if (building.team != team || building.healthf() >= 0.999f) {
+                continue;
+            }
+
+            float dx = building.tileX() - core.tileX();
+            float dy = building.tileY() - core.tileY();
+            if (dx * dx + dy * dy > radiusSq) {
+                continue;
+            }
+
+            int bx = building.tileX();
+            int by = building.tileY();
+
+            plans.remove(p -> p.x == bx && p.y == by);
+            plans.add(new BlockPlan(bx, by, (short) building.rotation, building.block, building.config()));
+        }
     }
 
     @Override
@@ -100,7 +204,7 @@ public class AssistantBuilderFeature implements Feature {
 
     @Override
     public void onDisable() {
-        disarm();
+        armed = null;
     }
 
     @Override
@@ -121,7 +225,7 @@ public class AssistantBuilderFeature implements Feature {
         table.label(() -> armed != null ? Core.bundle.format("assistantbuilder.armed.label", armed.name()) : "")
                 .padRight(10);
 
-        table.button(Icon.cancelSmall, Styles.emptyi, this::disarm).size(28f);
+        table.button(Icon.cancelSmall, Styles.emptyi, () -> armed = null).size(28f);
 
         table.pack();
         table.update(() -> table.setPosition(Core.graphics.getWidth() / 2f, Core.graphics.getHeight() - 12f,
@@ -139,11 +243,27 @@ public class AssistantBuilderFeature implements Feature {
 
     public void arm(Schematic schematic) {
         armed = schematic;
+        setSelectedSchematic(schematic);
         Vars.ui.showInfoToast("@assistantbuilder.toast.armed", 2f);
     }
 
-    public void disarm() {
-        armed = null;
+    public void setSelectedSchematic(Schematic schematic) {
+        this.selectedSchematic = schematic;
+        resetAutoBuildProgress();
+    }
+
+    public Schematic getSelectedSchematic() {
+        return selectedSchematic;
+    }
+
+    public void resetAutoBuildProgress() {
+        spiralX = 0;
+        spiralY = 0;
+        spiralDX = 1;
+        spiralDY = 0;
+        spiralLegLength = 1;
+        spiralLegProgress = 0;
+        spiralTurns = 0;
     }
 
     public boolean isArmed() {
@@ -157,6 +277,7 @@ public class AssistantBuilderFeature implements Feature {
     public void setStyle(ArchitecturalStyle style) {
         this.style = style;
         Core.settings.put(STYLE_SETTING_KEY, style.name());
+        resetAutoBuildProgress();
     }
 
     public int getRowCount() {
@@ -167,82 +288,84 @@ public class AssistantBuilderFeature implements Feature {
         Core.settings.put(ROW_COUNT_SETTING_KEY, Mathf.clamp(count, 1, MAX_ROW_COUNT));
     }
 
-    /** Queues a single (optionally mirrored) placement. Returns false and queues nothing if any tile is invalid. */
+    public boolean isAutoBuild() {
+        return autoBuild;
+    }
+
+    public void setAutoBuild(boolean value) {
+        this.autoBuild = value;
+        Core.settings.put(AUTO_BUILD_SETTING_KEY, value);
+    }
+
+    public boolean isAutoRepair() {
+        return autoRepair;
+    }
+
+    public void setAutoRepair(boolean value) {
+        this.autoRepair = value;
+        Core.settings.put(AUTO_REPAIR_SETTING_KEY, value);
+    }
+
     public boolean queueBuild(Schematic schematic, int originX, int originY) {
-        if (!isEnabled()) {
+        if (!isEnabled() || Vars.player == null) {
             return false;
         }
 
-        var unit = Vars.player.unit();
-        if (unit == null) {
-            Vars.ui.showInfoToast("@assistantbuilder.toast.no-unit", 2f);
-            return false;
-        }
-
+        Team team = Vars.player.team();
         int snappedX = snap(originX);
         int snappedY = snap(originY);
 
-        Seq<BuildPlan> collected = new Seq<>();
-        if (!collectPlacement(schematic, snappedX, snappedY, false, unit.team(), collected)) {
+        Seq<BlockPlan> collected = new Seq<>();
+        if (!collectPlacement(schematic, snappedX, snappedY, false, team, collected)) {
             return false;
         }
 
         if (style.mirrored) {
             int mirrorX = snap(snappedX + schematic.width + style.spacing);
-            if (!collectPlacement(schematic, mirrorX, snappedY, true, unit.team(), collected)) {
+            if (!collectPlacement(schematic, mirrorX, snappedY, true, team, collected)) {
                 return false;
             }
         }
 
-        collected.each(unit.plans::addLast);
+        var plans = team.data().plans;
+        collected.each(plans::add);
         return true;
     }
 
-    /** Queues {@code count} copies in a row, stopping (and rolling back) if any copy would be invalid. */
     public boolean queueRow(Schematic schematic, int originX, int originY, int count) {
-        if (!isEnabled()) {
+        if (!isEnabled() || Vars.player == null) {
             return false;
         }
 
-        var unit = Vars.player.unit();
-        if (unit == null) {
-            Vars.ui.showInfoToast("@assistantbuilder.toast.no-unit", 2f);
-            return false;
-        }
-
+        Team team = Vars.player.team();
         int stepWidth = schematic.width + style.spacing;
         int step = style.mirrored ? stepWidth * 2 : stepWidth;
 
-        Seq<BuildPlan> collected = new Seq<>();
+        Seq<BlockPlan> collected = new Seq<>();
 
         for (int i = 0; i < count; i++) {
             int cursorX = snap(originX + i * step);
             int snappedY = snap(originY);
 
-            if (!collectPlacement(schematic, cursorX, snappedY, false, unit.team(), collected)) {
+            if (!collectPlacement(schematic, cursorX, snappedY, false, team, collected)) {
                 return false;
             }
 
             if (style.mirrored) {
                 int mirrorX = snap(cursorX + schematic.width + style.spacing);
-                if (!collectPlacement(schematic, mirrorX, snappedY, true, unit.team(), collected)) {
+                if (!collectPlacement(schematic, mirrorX, snappedY, true, team, collected)) {
                     return false;
                 }
             }
         }
 
-        collected.each(unit.plans::addLast);
+        var plans = team.data().plans;
+        collected.each(plans::add);
         return true;
     }
 
-    /**
-     * Validates every tile of one schematic copy (bounds + {@link Build#validPlace}) and appends
-     * matching {@link BuildPlan}s to {@code out} if the whole footprint is buildable.
-     *
-     * @return true if the copy was fully valid and appended; false if any tile was invalid (nothing appended)
-     */
     private boolean collectPlacement(Schematic schematic, int originX, int originY, boolean mirror,
-            Team team, Seq<BuildPlan> out) {
+            Team team, Seq<BlockPlan> out) {
         for (Stile tile : schematic.tiles) {
             int localX = mirror ? (schematic.width - 1 - tile.x) : tile.x;
             int worldX = originX + localX;
@@ -259,19 +382,17 @@ public class AssistantBuilderFeature implements Feature {
                 return false;
             }
 
-            out.add(new BuildPlan(worldX, worldY, rotation, block, tile.config));
+            out.add(new BlockPlan(worldX, worldY, (short) rotation, block, tile.config));
         }
 
         return true;
     }
 
-    private boolean isPlacementValid(Schematic schematic, int originX, int originY, boolean mirror,
-            Team team) {
+    private boolean isPlacementValid(Schematic schematic, int originX, int originY, boolean mirror, Team team) {
         return collectPlacement(schematic, originX, originY, mirror, team, new Seq<>());
     }
 
     private int mirrorRotation(int rotation) {
-        // Horizontal mirror: flip left/right facing rotations (1 = right becomes 3 = left, and vice versa).
         if (rotation == 1) {
             return 3;
         }
@@ -281,7 +402,6 @@ public class AssistantBuilderFeature implements Feature {
         return rotation;
     }
 
-    /** Only reskins blocks of the same footprint size, to avoid multi-tile blocks overlapping neighbours. */
     private Block skin(Block block) {
         if (block instanceof Wall && block.size == style.skinWall.size) {
             return style.skinWall;
@@ -298,34 +418,49 @@ public class AssistantBuilderFeature implements Feature {
         return Math.round(coord / (float) style.spacing) * style.spacing;
     }
 
+    private void advanceSpiral() {
+        spiralX += spiralDX;
+        spiralY += spiralDY;
+        spiralLegProgress++;
+
+        if (spiralLegProgress == spiralLegLength) {
+            spiralLegProgress = 0;
+
+            int newDX = -spiralDY;
+            int newDY = spiralDX;
+            spiralDX = newDX;
+            spiralDY = newDY;
+
+            spiralTurns++;
+            if (spiralTurns % 2 == 0) {
+                spiralLegLength++;
+            }
+        }
+    }
+
     private void drawGhost() {
         if (armed == null || !Vars.state.isGame() || Core.scene.hasField() || Core.scene.hasDialog()) {
             return;
         }
 
-        var unit = Vars.player.unit();
-        if (unit == null) {
-            return;
-        }
-
+        Team team = Vars.player.team();
         var world = Core.input.mouseWorld();
         int snappedX = snap(Mathf.round(world.x / Vars.tilesize));
         int snappedY = snap(Mathf.round(world.y / Vars.tilesize));
 
         Draw.z(Layer.overlayUI);
 
-        drawGhostCopy(armed, snappedX, snappedY, false, unit.team());
+        drawGhostCopy(armed, snappedX, snappedY, false, team);
 
         if (style.mirrored) {
             int mirrorX = snap(snappedX + armed.width + style.spacing);
-            drawGhostCopy(armed, mirrorX, snappedY, true, unit.team());
+            drawGhostCopy(armed, mirrorX, snappedY, true, team);
         }
 
         Draw.reset();
     }
 
-    private void drawGhostCopy(Schematic schematic, int originX, int originY, boolean mirror,
-            Team team) {
+    private void drawGhostCopy(Schematic schematic, int originX, int originY, boolean mirror, Team team) {
         boolean valid = isPlacementValid(schematic, originX, originY, mirror, team);
 
         Lines.stroke(1.5f, valid ? Pal.accent : Pal.remove);
