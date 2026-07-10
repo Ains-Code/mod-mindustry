@@ -108,7 +108,6 @@ public class QuickAccessSettingsDialog extends BaseDialog {
         slider.setValue(initial);
 
         Label valueLabel = new Label(formatValue(initial, percent));
-        valueLabel.setAlignment(Align.right);
 
         slider.changed(() -> {
             float v = slider.getValue();
@@ -122,12 +121,12 @@ public class QuickAccessSettingsDialog extends BaseDialog {
 
             Table sliderRow = new Table();
             sliderRow.add(slider).growX();
-            sliderRow.add(valueLabel).padLeft(10).minWidth(54f);
+            sliderRow.add(valueLabel).padLeft(10).minWidth(54f).labelAlign(Align.right);
             row.add(sliderRow).growX();
         } else {
             row.labelWrap(labelKey).left().padRight(10).width(110f);
             row.add(slider).growX();
-            row.add(valueLabel).padLeft(10).minWidth(54f);
+            row.add(valueLabel).padLeft(10).minWidth(54f).labelAlign(Align.right);
         }
 
         table.add(row).growX().pad(5).row();
