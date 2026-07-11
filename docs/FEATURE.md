@@ -1,17 +1,17 @@
-# MindustryToolMod Feature Inventory
+# ModifiedTools Feature Inventory
 
-> Total: ~152 Java files across 22 feature groups + core infrastructure
+> Total: ~163 Java files across feature groups + core infrastructure
 
 ## Core Infrastructure
 
 | Group | Files | Description |
 |-------|-------|-------------|
-| **Config** | `src/mindustrytool/Config.java` | Environment URLs, API endpoints, GitHub/repo config |
-| **Main** | `src/mindustrytool/Main.java` | Mod entry point, feature registration, packet replacement, dir setup |
-| **Utils** | `src/mindustrytool/Utils.java` | JSON parsing, markdown rendering, I/O helpers |
-| **IconUtils** | `src/mindustrytool/IconUtils.java` | Icon mapping utilities |
-| **MdtInitEvent** | `src/mindustrytool/MdtInitEvent.java` | Init event fired after feature setup |
-| **MdtKeybinds** | `src/mindustrytool/MdtKeybinds.java` | Key binding registration |
+| **Config** | `src/modifiedtools/Config.java` | Environment URLs, API endpoints, GitHub/repo config |
+| **Main** | `src/modifiedtools/Main.java` | Mod entry point, feature registration, packet replacement, dir setup |
+| **Utils** | `src/modifiedtools/Utils.java` | JSON parsing, markdown rendering, I/O helpers |
+| **IconUtils** | `src/modifiedtools/IconUtils.java` | Icon mapping utilities |
+| **MdtInitEvent** | `src/modifiedtools/MdtInitEvent.java` | Init event fired after feature setup |
+| **MdtKeybinds** | `src/modifiedtools/MdtKeybinds.java` | Key binding registration |
 | **Feature** | `features/Feature.java` | Feature lifecycle interface (init, onEnable, onDisable) |
 | **FeatureManager** | `features/FeatureManager.java` | Singleton registry: init/enable/disable/persist feature states |
 | **FeatureMetadata** | `features/FeatureMetadata.java` | Builder for feature metadata (name, icon, order) |
@@ -223,6 +223,52 @@
 
 ---
 
+## Assistant Builder
+
+| File | Description |
+|------|-------------|
+| `features/assistantbuilder/AssistantBuilderFeature.java` | Auto-expands a chosen schematic outward from the player's build queue, with optional auto-build/auto-repair |
+| `features/assistantbuilder/AssistantBuilderPickDialog.java` | Dialog for picking which schematic to auto-build |
+| `features/assistantbuilder/AssistantBuilderSettingDialog.java` | Assistant Builder settings UI (style, row count, auto-build/repair toggles) |
+| `features/assistantbuilder/ArchitecturalStyle.java` | Block-substitution presets used when auto-expanding schematics |
+| `features/assistantbuilder/BuiltinSchematics.java` | Hand-designed schematics bundled with the mod for use before the player has saved any of their own |
+
+---
+
+## Conveyor Maker
+
+| File | Description |
+|------|-------------|
+| `features/conveyormaker/ConveyorMakerFeature.java` | Hold-tap an empty tile, pick a conveyor type, then tap a second tile to auto-queue a straight/L-shaped conveyor line between them |
+
+---
+
+## Display: Core Capacity
+
+| File | Description |
+|------|-------------|
+| `features/display/corecapacity/CoreCapacityWarning.java` | HUD badge listing core items nearing their storage cap, so overflow/waste is noticeable before it happens |
+
+---
+
+## Display: Spawn Indicator
+
+| File | Description |
+|------|-------------|
+| `features/display/spawnindicator/SpawnIndicatorFeature.java` | Marks active enemy spawn points and draws an edge-of-screen arrow toward off-screen ones |
+| `features/display/spawnindicator/SpawnIndicatorConfig.java` | Spawn indicator configuration |
+| `features/display/spawnindicator/SpawnIndicatorSettingsDialog.java` | Spawn indicator settings UI |
+
+---
+
+## Smart Deconstruct
+
+| File | Description |
+|------|-------------|
+| `features/smartdeconstruct/SmartDeconstructFeature.java` | Companion to Smart Upgrade: hold-tap a distribution/wall/drill/conduit block to queue the whole connected network of the same block group for removal |
+
+---
+
 ## Save Sync
 
 | File | Description |
@@ -290,7 +336,6 @@
 | `services/ServerService.java` | Server list fetching & caching |
 | `services/AuthService.java` | Auth token management (duplicated in features/auth) |
 | `services/UpdateService.java` | Version check, release notes fetch |
-| `services/PlayerConnectService.java` | Room listing & caching |
 | `services/UserService.java` | Batched user data fetching |
 | `services/MapService.java` | Map download & detail fetch |
 | `services/SchematicService.java` | Schematic download & detail fetch |
