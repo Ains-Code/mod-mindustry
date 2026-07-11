@@ -36,13 +36,30 @@ jobs:
          - name: Read version
            id: version
            run: |
-              VERSION=$(hjson -j mod.hjson | jq -r .version)
+              VERSION=$(hjson -j mod.hjson | node -e "
+                let d = '';
+                process.stdin.on('data', c => d += c);
+                process.stdin.on('end', () => {
+                  const v = JSON.parse(d).version;
+                  if (!v) { process.exit(1); }
+                  process.stdout.write(String(v));
+                });
+              ")
+
+              if [[ -z "$VERSION" ]]; then
+                echo "::error::Could not read a 'version' field from mod.hjson"
+                exit 1
+              fi
+
               if [[ "${{ github.ref_name }}" != "main" ]]; then
                 VERSION="${VERSION}-beta"
               fi
-              echo "tag=${VERSION}" >> $GITHUB_OUTPUT
+
+              echo "Resolved release tag: $VERSION"
+              echo "tag=${VERSION}" >> "$GITHUB_OUTPUT"
 
          - name: Create release
+           if: steps.version.outputs.tag != ''
            uses: softprops/action-gh-release@v2
            with:
               tag_name: "${{ steps.version.outputs.tag }}"
