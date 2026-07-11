@@ -4,7 +4,7 @@ displayName: "ModifiedTools"
 
 author: "[#FF0018[]]S[#FFA52C[]]I[#FFFF41[]]J"
 
-main: "mindustrytool.Main"
+main: "modifiedtools.Main"
 
 description:
   '''
