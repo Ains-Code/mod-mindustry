@@ -92,10 +92,17 @@ public class QuickAccessFeature extends Table implements Feature {
     void rebuild() {
         try {
             rebuildUnsafe();
-        } catch (Exception e) {
-            Log.err("[QuickAccessFeature] rebuild() failed, showing empty widget instead of crashing", e);
+        } catch (Throwable e) {
+            Log.err("[QuickAccessFeature] rebuild() failed, showing error badge instead of crashing", e);
             try {
                 clear();
+                Table errorBadge = new Table();
+                errorBadge.background(Tex.pane);
+                errorBadge.setColor(0.6f, 0.1f, 0.1f, 0.95f);
+                errorBadge.add("QuickAccess error: " + e.getClass().getSimpleName())
+                        .pad(6f)
+                        .color(Color.white);
+                add(errorBadge);
                 pack();
             } catch (Exception ignored) {
                 // Even the fallback failed; nothing more we can safely do here.
@@ -382,4 +389,4 @@ public class QuickAccessFeature extends Table implements Feature {
         }
         return Optional.of(settingsDialog);
     }
-}
+            }
