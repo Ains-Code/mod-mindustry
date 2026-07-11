@@ -5,7 +5,7 @@ cls
 set "BASE_APPDATA=%APPDATA%"
 set "TARGET_FILE=%BASE_APPDATA%\Mindustry\mods\modifiedtoolsmod.zip"
 set "BUILD_TOOL=.\gradlew jar"
-set "JAR_PATH=%~dp0\build\libs\MindustryToolModDesktop.jar"
+set "JAR_PATH=%~dp0\build\libs\mod-mindustryDesktop.jar"
 set "DEST_FOLDER=%BASE_APPDATA%\Mindustry\mods"
 set "LAST_PATH_FILE=%BASE_APPDATA%\Mindustry\lastpath.txt"
 
