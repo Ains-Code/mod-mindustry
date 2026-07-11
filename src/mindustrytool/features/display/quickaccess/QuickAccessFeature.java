@@ -5,7 +5,7 @@ import java.util.Optional;
 import arc.Core;
 import arc.Events;
 import arc.input.KeyCode;
-import arc.math.Interpolation;
+import arc.math.Interp;
 import arc.math.Mathf;
 import arc.graphics.Color;
 import arc.scene.actions.Actions;
@@ -208,8 +208,8 @@ public class QuickAccessFeature extends Table implements Feature {
             container.actions(
                     Actions.sequence(
                             Actions.parallel(
-                                    Actions.alpha(targetOpacity, TOGGLE_ANIM_DURATION, Interpolation.fade),
-                                    Actions.scaleTo(1f, 1f, TOGGLE_ANIM_DURATION, Interpolation.pow3Out)),
+                                    Actions.alpha(targetOpacity, TOGGLE_ANIM_DURATION, Interp.fade),
+                                    Actions.scaleTo(1f, 1f, TOGGLE_ANIM_DURATION, Interp.pow3Out)),
                             Actions.run(() -> container.touchable = Touchable.enabled)));
         }
 
@@ -238,8 +238,8 @@ public class QuickAccessFeature extends Table implements Feature {
         currentContainer.actions(
                 Actions.sequence(
                         Actions.parallel(
-                                Actions.alpha(0f, TOGGLE_ANIM_DURATION, Interpolation.fade),
-                                Actions.scaleTo(0.85f, 0.85f, TOGGLE_ANIM_DURATION, Interpolation.pow3In)),
+                                Actions.alpha(0f, TOGGLE_ANIM_DURATION, Interp.fade),
+                                Actions.scaleTo(0.85f, 0.85f, TOGGLE_ANIM_DURATION, Interp.pow3In)),
                         Actions.run(() -> {
                             QuickAccessConfig.collapsed(true);
                             rebuild();
