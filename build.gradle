@@ -7,29 +7,41 @@ sourceSets.main.java.srcDirs = ["src"]
 repositories{
     mavenCentral()
     google()
-    maven{ url "https://raw.githubusercontent.com/Zelaux/MindustryRepo/master/repository" }
-    maven{ url 'https://www.jitpack.io' }
+
+    //Downloads the dependencies JAR file from Mindustry releases; does not use any real repository.
+    //Much faster/more reliable in CI than building from source via jitpack.
+    ivy{
+        url = 'https://github.com/'
+        patternLayout{artifact '/[organisation]/[module]/releases/download/[revision]/dependencies.jar'}
+        metadataSources{ artifact() }
+    }
+
+    //If the version is set to 'latest', downloads the latest Mindustry *release* as a dependency
+    ivy{
+        url = 'https://github.com/'
+        patternLayout{artifact '/[organisation]/[module]/releases/[revision]/download/dependencies.jar'}
+        metadataSources{ artifact() }
+    }
+
+    //For depending on the absolute newest commit for Mindustry
+    ivy{
+        url = 'https://github.com/'
+        patternLayout{artifact '/[organisation]/[module]/releases/download/master/[revision].jar'}
+        metadataSources{ artifact() }
+    }
 }
 
 
 java{
-    targetCompatibility = 8
+    targetCompatibility = JavaVersion.VERSION_17
     sourceCompatibility = JavaVersion.VERSION_17
-}
-
-allprojects{
-    tasks.withType(JavaCompile).tap{
-        configureEach{
-            options.compilerArgs.addAll(['--release', '8'])
-        }
-    }
 }
 
 
 
 ext{
     //the build number that this mod is made for
-    mindustryVersion = 'v159' 
+    mindustryVersion = 'v154'
     jabelVersion = "93fde537c7"
     //windows sucks
     isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
@@ -37,8 +49,7 @@ ext{
 }
 
 dependencies{    
-    compileOnly "com.github.Anuken.Arc:arc-core:$mindustryVersion"
-    compileOnly "com.github.Anuken.Mindustry:core:$mindustryVersion"
+    compileOnly mindustryVersion == "be" ? "Anuken:MindustryBuilds:latest" : "Anuken:Mindustry:$mindustryVersion"
 	compileOnly 'org.projectlombok:lombok:1.18.32'
       
     implementation 'org.apache.httpcomponents:httpclient:4.5.14'
@@ -46,16 +57,6 @@ dependencies{
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.16.2'
     
     annotationProcessor 'org.projectlombok:lombok:1.18.32'
-    annotationProcessor "com.github.Anuken:jabel:$jabelVersion"
-}
-
-//force arc version
-configurations.all{
-    resolutionStrategy.eachDependency { details ->
-        if(details.requested.group == 'com.github.Anuken.Arc'){
-            details.useVersion "$mindustryVersion"
-        }
-    }
 }
 
 task jarAndroid{
