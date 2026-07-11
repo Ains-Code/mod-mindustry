@@ -5,8 +5,10 @@ import java.util.Optional;
 import arc.Core;
 import arc.Events;
 import arc.input.KeyCode;
+import arc.math.Interpolation;
 import arc.math.Mathf;
 import arc.graphics.Color;
+import arc.scene.actions.Actions;
 import arc.scene.event.InputEvent;
 import arc.scene.event.InputListener;
 import arc.scene.event.Touchable;
@@ -32,11 +34,15 @@ import mindustrytool.features.FeatureManager;
 import mindustrytool.features.FeatureMetadata;
 
 /**
- * Matches the original upstream (MindustryTool/MindustryToolMod) design:
- * a simple draggable bar with an anchor, a separator, and always-visible
- * feature buttons. No collapse/expand, no custom styling on top.
+ * A draggable bar with an anchor icon, a separator, and feature buttons.
+ * Tapping the anchor (without dragging) toggles {@link QuickAccessConfig#collapsed()}:
+ * collapsed shows only the anchor icon, expanded reveals the separator, the
+ * feature button row, and a close button, with a short fade/scale-in tween.
  */
 public class QuickAccessFeature extends Table implements Feature {
+    private static final float DRAG_TAP_THRESHOLD = 6f;
+    private static final float TOGGLE_ANIM_DURATION = 0.22f;
+
     private BaseDialog settingsDialog;
 
     @Override
@@ -108,7 +114,9 @@ public class QuickAccessFeature extends Table implements Feature {
         float buttonSize = 48f * scale;
         float margin = 8f * scale;
 
-        // 1. Anchor (Draggable only)
+        // 1. Anchor: draggable, and toggles collapsed/expanded on a plain tap
+        // (i.e. a touch that didn't move past DRAG_TAP_THRESHOLD).
+        boolean collapsedNow = QuickAccessConfig.collapsed();
         container.button(Icon.move, Styles.clearNonei, () -> {
         })
                 .size(buttonSize)
@@ -116,17 +124,26 @@ public class QuickAccessFeature extends Table implements Feature {
                 .get()
                 .addListener(new InputListener() {
                     float lastX, lastY;
+                    float downX, downY;
+                    boolean dragged;
 
                     @Override
                     public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button) {
                         lastX = x;
                         lastY = y;
+                        downX = x;
+                        downY = y;
+                        dragged = false;
                         return true;
                     }
 
                     @Override
                     public void touchDragged(InputEvent event, float x, float y, int pointer) {
                         try {
+                            if (Mathf.dst(x, y, downX, downY) > DRAG_TAP_THRESHOLD) {
+                                dragged = true;
+                            }
+
                             moveBy(x - lastX, y - lastY);
 
                             float sw = Core.graphics.getWidth();
@@ -142,6 +159,18 @@ public class QuickAccessFeature extends Table implements Feature {
                             Log.err(e);
                         }
                     }
+
+                    @Override
+                    public void touchUp(InputEvent event, float x, float y, int pointer, KeyCode button) {
+                        if (!dragged) {
+                            if (QuickAccessConfig.collapsed()) {
+                                QuickAccessConfig.collapsed(false);
+                                rebuild();
+                            } else {
+                                collapseWithAnimation();
+                            }
+                        }
+                    }
                 });
 
         float sw = Core.graphics.getWidth();
@@ -153,19 +182,68 @@ public class QuickAccessFeature extends Table implements Feature {
         QuickAccessConfig.x(QuickAccessFeature.this.x);
         QuickAccessConfig.y(QuickAccessFeature.this.y);
 
-        // 2. Separator
-        Image sep = new Image(Tex.whiteui);
-        sep.setColor(Pal.accent);
-        container.add(sep).width(2f).fillY();
+        if (!collapsedNow) {
+            // 2. Separator (only when expanded)
+            Image sep = new Image(Tex.whiteui);
+            sep.setColor(Pal.accent);
+            container.add(sep).width(2f).fillY();
 
-        // 3. Content (Always visible)
-        Table content = new Table();
-        populateContent(content);
-        container.add(content);
+            // 3. Content: feature buttons + a close button that collapses the bar
+            Table content = new Table();
+            populateContent(content);
+            content.button(Icon.cancelSmall, Styles.clearNonei, this::collapseWithAnimation)
+                    .size(buttonSize)
+                    .margin(margin);
+            container.add(content);
+
+            // Short fade + scale-in so expanding doesn't just pop into existence.
+            // Touch is disabled for the duration so a tap can't land on a button
+            // before it's actually visible.
+            float targetOpacity = QuickAccessConfig.opacity();
+            container.setOrigin(0f, container.getPrefHeight() / 2f);
+            container.setTransform(true);
+            container.setColor(1f, 1f, 1f, 0f);
+            container.setScale(0.85f, 0.85f);
+            container.touchable = Touchable.disabled;
+            container.actions(
+                    Actions.sequence(
+                            Actions.parallel(
+                                    Actions.alpha(targetOpacity, TOGGLE_ANIM_DURATION, Interpolation.fade),
+                                    Actions.scaleTo(1f, 1f, TOGGLE_ANIM_DURATION, Interpolation.pow3Out)),
+                            Actions.run(() -> container.touchable = Touchable.enabled)));
+        }
 
         add(container).pad(0).margin(0);
         pack();
         keepInScreen();
+    }
+
+    /**
+     * Fades and shrinks the currently-open panel out, then flips
+     * {@link QuickAccessConfig#collapsed()} and rebuilds once the animation
+     * finishes, so collapsing looks like the reverse of expanding instead of
+     * just vanishing.
+     */
+    private void collapseWithAnimation() {
+        if (getChildren().isEmpty()) {
+            QuickAccessConfig.collapsed(true);
+            rebuild();
+            return;
+        }
+
+        Table currentContainer = (Table) getChildren().first();
+        currentContainer.touchable = Touchable.disabled;
+        currentContainer.setTransform(true);
+        currentContainer.setOrigin(0f, currentContainer.getHeight() / 2f);
+        currentContainer.actions(
+                Actions.sequence(
+                        Actions.parallel(
+                                Actions.alpha(0f, TOGGLE_ANIM_DURATION, Interpolation.fade),
+                                Actions.scaleTo(0.85f, 0.85f, TOGGLE_ANIM_DURATION, Interpolation.pow3In)),
+                        Actions.run(() -> {
+                            QuickAccessConfig.collapsed(true);
+                            rebuild();
+                        })));
     }
 
     public void keepInScreen() {
