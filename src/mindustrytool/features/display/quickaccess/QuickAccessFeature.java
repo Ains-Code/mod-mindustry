@@ -116,27 +116,9 @@ public class QuickAccessFeature extends Table implements Feature {
         Table container = new Table();
         container.touchable = Touchable.enabled;
 
-        if (!collapsed) {
-            // Expanded panel: rounded dark pill holding feature shortcuts + close btn.
-            Table panel = new Table();
-            panel.background(Tex.pane);
-            panel.setColor(BAR_BG.r, BAR_BG.g, BAR_BG.b, QuickAccessConfig.opacity());
-
-            populateContent(panel, buttonSize, margin);
-
-            Button closeBtn = panel
-                    .button(Icon.cancel, Styles.clearNonei, this::toggleCollapsed)
-                    .size(28f * scale)
-                    .margin(4f * scale)
-                    .tooltip("@quickaccess.collapse")
-                    .get();
-            addHoverPop(closeBtn);
-
-            container.add(panel).padRight(8f * scale);
-        }
-
-        // Launcher: round always-visible icon button. Tap toggles the panel,
-        // dragging (past a small threshold) moves the whole widget instead.
+        // Launcher: round always-visible icon button, fixed on the left (matches
+        // the "icon expand/collapse" mockup). Tap toggles the panel; dragging
+        // (past a small threshold) moves the whole widget instead.
         Table launcherWrap = new Table();
         launcherWrap.background(Tex.pane);
         launcherWrap.setColor(BAR_BG.r, BAR_BG.g, BAR_BG.b, 1f);
@@ -196,6 +178,26 @@ public class QuickAccessFeature extends Table implements Feature {
         });
 
         container.add(launcherWrap).size(launcherSize);
+
+        if (!collapsed) {
+            // Expanded panel: rounded dark pill holding feature shortcuts + close
+            // btn, growing out to the RIGHT from behind the fixed launcher icon.
+            Table panel = new Table();
+            panel.background(Tex.pane);
+            panel.setColor(BAR_BG.r, BAR_BG.g, BAR_BG.b, QuickAccessConfig.opacity());
+
+            populateContent(panel, buttonSize, margin);
+
+            Button closeBtn = panel
+                    .button(Icon.cancel, Styles.clearNonei, this::toggleCollapsed)
+                    .size(28f * scale)
+                    .margin(4f * scale)
+                    .tooltip("@quickaccess.collapse")
+                    .get();
+            addHoverPop(closeBtn);
+
+            container.add(panel).padLeft(8f * scale);
+        }
 
         add(container).pad(0).margin(0);
         pack();
@@ -342,7 +344,12 @@ public class QuickAccessFeature extends Table implements Feature {
             name = "quick-access-hud";
             visible(() -> {
                 try {
-                    return Vars.ui.hudfrag.shown && Vars.state.isGame();
+                    // Note: we intentionally don't gate on Vars.ui.hudfrag.shown here.
+                    // Mindustry sets that to false in Command Mode (and a few other
+                    // "clean view" states), which used to make this widget vanish
+                    // even though the mod itself was working fine. We only care
+                    // whether we're actually in a game.
+                    return Vars.state.isGame();
                 } catch (Exception e) {
                     // Never let a visibility check crash the frame; default to hidden.
                     return false;
