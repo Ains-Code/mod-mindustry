@@ -1,4 +1,4 @@
-# **[Mindustry Tool](https://mindustry-tool.com)**
+# **[ModifiedTools](https://mindustry-tool.com)**
 
 ![GitHub all releases](https://img.shields.io/github/downloads/MindustryTool/MindustryToolMod/total?style=flat-square)
 ![GitHub release (latest by date)](https://img.shields.io/github/downloads/MindustryTool/MindustryToolMod/latest/total?style=flat-square)
@@ -6,7 +6,7 @@
 
 ![Icon](banner.png)
 
-**Mindustry Tool** is a feature-rich mod that integrates with [Mindustry Tool](https://mindustry-tool.com), significantly enhancing the **Mindustry** gameplay experience. It offers everything from community-driven content sharing to advanced automation, enhanced communication, and deep visual analysis tools.
+**ModifiedTools** is a feature-rich mod that integrates with [Mindustry Tool](https://mindustry-tool.com), significantly enhancing the **Mindustry** gameplay experience. It offers everything from community-driven content sharing to advanced automation, enhanced communication, and deep visual analysis tools.
 
 ## **Features:**
 
@@ -38,16 +38,16 @@
 
 ## **Installation:**
 
-1. Download the **Mindustry Tool mod** from this repository.
+1. Download the **ModifiedTools mod** from this repository.
 2. Install the mod into your Mindustry game directory.
 3. Launch the game and access all features directly from the in-game menus.
 
 ## **Join the Community:**
 
-- **Discord:** [Mindustry Tool](https://discord.gg/YGuBQ3g9fQ)
-- **Web:** [Mindustry Tool](https://mindustry-tool.com)
+- **Discord:** [ModifiedTools](https://discord.gg/YGuBQ3g9fQ)
+- **Web:** [ModifiedTools](https://mindustry-tool.com)
 
-If you like the mod, please give it a star on GitHub. Thank you for supporting **Mindustry Tool**!
+If you like the mod, please give it a star on GitHub. Thank you for supporting **ModifiedTools**!
 
 ## **Credit to:**
 

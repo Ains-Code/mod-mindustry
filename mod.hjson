@@ -1,16 +1,16 @@
-name: "mindustry-tool"
+name: "modifiedtools"
 
-displayName: "Mindustry Tool"
+displayName: "ModifiedTools"
 
 author: "[#FF0018[]]S[#FFA52C[]]h[#FFFF41[]]a[#008018[]]r[#0000F9[]]l[#86007D[]]o[#FF0018[]]t[#FFA52C[]]t[#FFFF41[]]e[[]]"
 
-main: "mindustrytool.Main"
+main: "modifiedtools.Main"
 
 description:
   '''
 [accent[]] [#FFF000[]]Mindustry Tool  [white[]]- The Ultimate Utility for Every Player[[]]
 
-[white[]]Mindustry Tool is a feature-rich mod that integrates with [#88C6ED[]]mindustry-tool.com[white[]], enhancing your gameplay with community content, advanced automation, and powerful visual analysis tools.
+[white[]]ModifiedTools is a feature-rich mod that integrates with [#88C6ED[]]mindustry-tool.com[white[]], enhancing your gameplay with community content, advanced automation, and powerful visual analysis tools.
 
 
 [accent[]] [#88C6ED[]]Content Browser:[[]]

@@ -3,7 +3,7 @@ cls
 
 :: Use %APPDATA% for user data and remember last selected launcher
 set "BASE_APPDATA=%APPDATA%"
-set "TARGET_FILE=%BASE_APPDATA%\Mindustry\mods\mindustrytoolmindustrytoolmod.zip"
+set "TARGET_FILE=%BASE_APPDATA%\Mindustry\mods\modifiedtoolsmod.zip"
 set "BUILD_TOOL=.\gradlew jar"
 set "JAR_PATH=%~dp0\build\libs\MindustryToolModDesktop.jar"
 set "DEST_FOLDER=%BASE_APPDATA%\Mindustry\mods"
