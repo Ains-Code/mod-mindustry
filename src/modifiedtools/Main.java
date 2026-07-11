@@ -24,6 +24,7 @@ import modifiedtools.features.display.pathfinding.PathfindingDisplay;
 import modifiedtools.features.display.teamresource.TeamResourceFeature;
 import modifiedtools.features.display.togglerendering.ToggleRenderingFeature;
 import modifiedtools.features.display.range.RangeDisplay;
+import modifiedtools.features.display.spawnindicator.SpawnIndicatorFeature;
 import modifiedtools.features.display.progress.ProgressDisplay;
 import modifiedtools.features.display.quickaccess.QuickAccessFeature;
 import modifiedtools.features.settings.FeatureSettingDialog;
@@ -128,6 +129,7 @@ public class Main extends Mod {
                 new TeamResourceFeature(),
                 new PathfindingDisplay(), //
                 new RangeDisplay(), //
+                new SpawnIndicatorFeature(), //
                 new QuickAccessFeature(), //
                 new AutoplayFeature(),
                 new WavePreviewFeature(),
