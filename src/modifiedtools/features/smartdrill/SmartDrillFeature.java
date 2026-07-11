@@ -51,8 +51,19 @@ public class SmartDrillFeature implements Feature {
         return Optional.of(new SmartDrillSettingDialog());
     }
 
+    // Safety cap used when "fill entire ore patch" is enabled, so a
+    // pathologically large vein can't freeze the game while scanning tiles.
+    private static final int FILL_ALL_MAX_TILES = 5000;
+
     public static int getMaxTiles(Block drill) {
+        if (isFillAll(drill)) {
+            return FILL_ALL_MAX_TILES;
+        }
         return Core.settings.getInt("modifiedtools.smart-drill.max-tiles." + drill.name, 100);
+    }
+
+    public static boolean isFillAll(Block drill) {
+        return Core.settings.getBool("modifiedtools.smart-drill.fill-all." + drill.name, false);
     }
 
     @Override
@@ -684,4 +695,4 @@ public class SmartDrillFeature implements Feature {
             };
         }
     }
-}
+                           }
