@@ -50,7 +50,7 @@ description:
   '''
 version: v1.0
 
-minGameVersion: v154
+minGameVersion: 154
 
 java: true
 
