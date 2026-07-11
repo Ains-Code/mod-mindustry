@@ -34,30 +34,14 @@ jobs:
            run: npm install -g hjson
 
          - name: Read version
-           id: version
+           id: versio
            run: |
-              VERSION=$(hjson -j mod.hjson | node -e "
-                let d = '';
-                process.stdin.on('data', c => d += c);
-                process.stdin.on('end', () => {
-                  const v = JSON.parse(d).version;
-                  if (!v) { process.exit(1); }
-                  process.stdout.write(String(v));
-                });
-              ")
-
-              if [[ -z "$VERSION" ]]; then
-                echo "::error::Could not read a 'version' field from mod.hjson"
-                exit 1
-              fi
-
+              Version=$(hjson -j mod.hjson | jq -r .version)
               if [[ "${{ github.ref_name }}" != "main" ]]; then
-                VERSION="${VERSION}-beta"
+                 Version = "${Version}-beta"
               fi
-
-              echo "Resolved release tag: $VERSION"
-              echo "tag=${VERSION}" >> "$GITHUB_OUTPUT"
-
+              echo "tag=${Version}" >> $GITHUB_OUTPUT
+              
          - name: Create release
            if: steps.version.outputs.tag != ''
            uses: softprops/action-gh-release@v2
