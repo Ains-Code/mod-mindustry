@@ -1,28 +1,47 @@
 # Project Structure
 
-## Root folder: `src/mindustrytool`
+## Root folder: `src/modifiedtools`
 
 - `Config.java`: Static configuration class.
 - `Main.java`: Mod entry point.
 - `Utils.java`: Static utility methods.
+- `IconUtils.java`: Icon mapping utilities.
+- `MdtInitEvent.java`: Init event fired after feature setup.
+- `MdtKeybinds.java`: Key binding registration.
 - `dto/`: Shared class resources.
 - `ui/`: Shared UI components and dialogs.
-- `events/`: Custom event definitions.
+- `utils/`: Shared utility helpers.
 - `services/`: Service layer for business logic, data fetching.
 - `features/`: Core functional modules.
    - `auth/`: Authentication.
+   - `autoplay/`: Autoplay/AI unit control.
    - `background/`: Custom background.
    - `browser/`: Map and schematic browser.
       - `map/`: Map browser.
       - `schematic/`: Schematic browser.
-   - `playerconnect/`: Player connect.
+   - `assistantbuilder/`: Auto-expanding schematic builder.
+   - `campaign/`: Campaign sector/wave HUD panel.
+   - `conveyormaker/`: Drag-to-place conveyor lines.
+   - `smartdeconstruct/`: Bulk deconstruct connected block networks.
+   - `smartdrill/`: Smart drill placement/management.
+   - `smartupgrade/`: One-tap distribution chain upgrades.
+   - `godmode/`: Sandbox/admin debug tools.
+   - `music/`: Custom music import/management.
+   - `savesync/`: Cloud save sync.
    - `settings/`: Settings.
+   - `time/`: Time control.
    - `display/`: Display.
-      - `hud/`: HUD.
       - `healthbar/`: Health bar.
+      - `itemvisualizer/`: Item flow visualizer.
+      - `pathfinding/`: Enemy pathfinding.
+      - `progress/`: Progress indicators.
+      - `quickaccess/`: Quick access UI.
       - `range/`: Anything that has range.
-      - `pathfinding/`: Enemy pathfinding
-   - `chat/`: Chat.
+      - `teamresource/`: Team resource tracking.
+      - `togglerendering/`: Toggleable rendering elements.
+      - `wavepreview/`: Incoming wave preview.
+      - `corecapacity/`: Core storage capacity warning.
+      - `spawnindicator/`: Enemy spawn point indicator.
 
 **Group files into folders based on their functionality whenever possible.**
 
@@ -50,4 +69,4 @@
 ## Requirements
 
 - Java 17
-- Mindustry v8 (build 153)
+- Mindustry v8 (build 159)
