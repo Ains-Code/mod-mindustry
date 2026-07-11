@@ -1,8 +1,7 @@
 # **[ModifiedTools](https://mindustry-tool.com)**
 
-![GitHub all releases](https://img.shields.io/github/downloads/MindustryTool/MindustryToolMod/total?style=flat-square)
-![GitHub release (latest by date)](https://img.shields.io/github/downloads/MindustryTool/MindustryToolMod/latest/total?style=flat-square)
-[![Discord](https://img.shields.io/discord/1295206730925609002.svg?logo=discord&logoColor=white&logoWidth=20&labelColor=7289DA&label=Discord&color=17cf48)](https://discord.gg/YGuBQ3g9fQ)<br>
+![GitHub all releases](https://img.shields.io/github/downloads/Ains-Code/mod-mindustry/total?style=flat-square)
+![GitHub release (latest by date)](https://img.shields.io/github/downloads/Ains-Code/mod-mindustry/latest/total?style=flat-square)
 
 ![Icon](banner.png)
 
@@ -38,13 +37,13 @@
 
 ## **Installation:**
 
-1. Download the **ModifiedTools mod** from this repository.
-2. Install the mod into your Mindustry game directory.
-3. Launch the game and access all features directly from the in-game menus.
+1. In Mindustry, go to **Settings → Mods → Import Mod**, and paste this repository's GitHub URL — Mindustry will fetch and install the latest release automatically.
+   - Alternatively, download the `.jar` from this repo's [Releases](../../releases) page and place it in your Mindustry `mods` folder manually.
+2. Restart Mindustry (or return to the main menu) to load the mod.
+3. Access all features directly from the in-game menus.
 
 ## **Join the Community:**
 
-- **Discord:** [ModifiedTools](https://discord.gg/YGuBQ3g9fQ)
 - **Web:** [ModifiedTools](https://mindustry-tool.com)
 
 If you like the mod, please give it a star on GitHub. Thank you for supporting **ModifiedTools**!
@@ -55,10 +54,10 @@ If you like the mod, please give it a star on GitHub. Thank you for supporting *
 
 **Translator:**
 
-| File                           | Language        | Discord username | GitHub username                                          |
-| ------------------------------ | --------------- | ---------------- | -------------------------------------------------------- |
-| [vi](/bundle_vi.properties)    | Tiếng Việt      | carrot_eo#0000   | [@junghamin1909](https://github.com/junghamin1909)       |
-| [cn](/bundle_zh_CN.properties) | 中文            | lao_hua_ji       | [@LaoHuaJiOfficial](https://github.com/LaoHuaJiOfficial) |
-| [ua](/bundle_uk_UA.properties) | украї́нська мо́ва | cergc            |                                                          |
-| [ko](/bundle_ko.properties)    | 한국어          | teong_geuri      |                                                          |
-| [be](/bundle_be.properties)    | беларуская мова | 4sterc4rd9102    |                                                          |
+| File                                       | Language        | Discord username | GitHub username                                          |
+| ------------------------------------------ | --------------- | ---------------- | -------------------------------------------------------- |
+| [vi](/assets/bundles/bundle_vi.properties)    | Tiếng Việt      | carrot_eo#0000   | [@junghamin1909](https://github.com/junghamin1909)       |
+| [cn](/assets/bundles/bundle_zh_CN.properties) | 中文            | lao_hua_ji       | [@LaoHuaJiOfficial](https://github.com/LaoHuaJiOfficial) |
+| [ua](/assets/bundles/bundle_uk_UA.properties) | украї́нська мо́ва | cergc            |                                                          |
+| [ko](/assets/bundles/bundle_ko.properties)    | 한국어          | teong_geuri      |                                                          |
+| [be](/assets/bundles/bundle_be.properties)    | беларуская мова | 4sterc4rd9102    |                                                          |
