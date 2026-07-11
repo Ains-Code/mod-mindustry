@@ -34,11 +34,11 @@ jobs:
            run: npm install -g hjson
 
          - name: Read version
-           id: versio
+           id: version
            run: |
               Version=$(hjson -j mod.hjson | jq -r .version)
               if [[ "${{ github.ref_name }}" != "main" ]]; then
-                 Version = "${Version}-beta"
+                 Version="${Version}-beta"
               fi
               echo "tag=${Version}" >> $GITHUB_OUTPUT
               
