@@ -36,11 +36,11 @@ jobs:
          - name: Read version
            id: version
            run: |
-              Version=$(hjson -j mod.hjson | jq -r .version)
-              if [[ "${{ github.ref_name }}" != "main" ]]; then
-                 Version="${Version}-beta"
-              fi
-              echo "tag=${Version}" >> $GITHUB_OUTPUT
+                Version=$(grep -m1 '^version:' mod.hjson | sed 's/^version:[[:space:]]*//' | tr -d '\r')
+                if [[ "${{ github.ref_name }}" != "main" ]]; then
+                Version="${Version}-beta"
+                fi
+                echo "tag=${Version}" >> $GITHUB_OUTPUT
               
          - name: Create release
            if: steps.version.outputs.tag != ''
