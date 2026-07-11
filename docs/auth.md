@@ -18,7 +18,7 @@
 
 ### Anti-Patterns
 
-- **MEDIUM** `AuthService.java:20-26` — `KEY_*` constants use `mindustrytool.auth.` prefix as hardcoded string — not centralized like other config classes
+- **MEDIUM** `AuthService.java:20-26` — `KEY_*` constants use `modifiedtools.auth.` prefix as hardcoded string — not centralized like other config classes
 - **MEDIUM** `AuthHttp.java:27` — `AuthRequest` class uses `HashMap` for headers; doesn't set `Content-Type` automatically for POST requests
 - **LOW** `AuthService.java:233` — `isLoggedIn()` checks both `currentSession != null` AND settings keys — potential inconsistency if settings and session are out of sync
 - **MEDIUM** `AuthLoginDialog.java:14` — Login dialog created once and reused; if user cancels and re-triggers, dialog is already shown
