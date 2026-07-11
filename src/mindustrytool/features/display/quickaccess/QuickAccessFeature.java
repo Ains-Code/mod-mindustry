@@ -4,15 +4,13 @@ import java.util.Optional;
 
 import arc.Core;
 import arc.Events;
-import arc.graphics.Color;
 import arc.input.KeyCode;
-import arc.math.Interp;
 import arc.math.Mathf;
-import arc.scene.Element;
-import arc.scene.actions.Actions;
+import arc.graphics.Color;
 import arc.scene.event.InputEvent;
 import arc.scene.event.InputListener;
 import arc.scene.event.Touchable;
+import arc.scene.ui.Image;
 import arc.scene.ui.Button;
 import arc.scene.ui.Dialog;
 import arc.scene.ui.layout.Table;
@@ -34,25 +32,12 @@ import mindustrytool.features.FeatureManager;
 import mindustrytool.features.FeatureMetadata;
 
 /**
- * A floating, draggable launcher button that expands into a horizontal pill
- * of feature shortcuts, mirroring the "icon expand/collapse" mockup: a round
- * launcher icon that reveals a dark rounded panel of feature buttons plus a
- * close button when tapped.
+ * Matches the original upstream (MindustryTool/MindustryToolMod) design:
+ * a simple draggable bar with an anchor, a separator, and always-visible
+ * feature buttons. No collapse/expand, no custom styling on top.
  */
 public class QuickAccessFeature extends Table implements Feature {
-    /** Duration of the collapse/expand cross-fade, in seconds. */
-    private static final float TOGGLE_FADE_OUT = 0.12f;
-    private static final float TOGGLE_FADE_IN = 0.2f;
-    /** Duration of the button hover "pop" effect, in seconds. */
-    private static final float HOVER_DURATION = 0.12f;
-    /** How far the launcher must move before a touch counts as a drag, not a tap. */
-    private static final float DRAG_THRESHOLD = 6f;
-
-    private static final Color BAR_BG = Color.valueOf("1c1f26ff");
-    private static final Color ACCENT = Color.valueOf("4dd0e1ff");
-
     private BaseDialog settingsDialog;
-    private boolean animating = false;
 
     @Override
     public FeatureMetadata getMetadata() {
@@ -86,8 +71,8 @@ public class QuickAccessFeature extends Table implements Feature {
      * Safe entry point: never lets a layout bug escape and take down the whole
      * game (which would trip the mod's crash detector and auto-disable every
      * other feature, including unrelated HUD elements like the health bar and
-     * armed indicator). On failure we log and fall back to an empty widget
-     * instead of propagating the exception.
+     * armed indicator). On failure we log and show a visible error badge
+     * instead of silently leaving nothing on screen.
      */
     void rebuild() {
         try {
@@ -113,141 +98,74 @@ public class QuickAccessFeature extends Table implements Feature {
     private void rebuildUnsafe() {
         clear();
 
-        boolean collapsed = QuickAccessConfig.collapsed();
-        float scale = QuickAccessConfig.scale();
-        float buttonSize = 40f * scale;
-        float margin = 6f * scale;
-        float launcherSize = 64f * scale;
-
-        // Row container that will be dragged; holds the [panel][launcher] pair.
+        // Main container table that will be dragged
         Table container = new Table();
-        container.touchable = Touchable.enabled;
+        container.background(Styles.black6);
+        container.setColor(1f, 1f, 1f, QuickAccessConfig.opacity());
+        container.touchable = Touchable.enabled; // Container catches touches
 
-        // Launcher: round always-visible icon button, fixed on the left (matches
-        // the "icon expand/collapse" mockup). Tap toggles the panel; dragging
-        // (past a small threshold) moves the whole widget instead.
-        Table launcherWrap = new Table();
-        launcherWrap.background(Tex.pane);
-        launcherWrap.setColor(BAR_BG.r, BAR_BG.g, BAR_BG.b, 1f);
+        float scale = QuickAccessConfig.scale();
+        float buttonSize = 48f * scale;
+        float margin = 8f * scale;
 
-        Button launcher = launcherWrap.button(b -> b.image(collapsed ? Icon.menu : Icon.left)
-                .scaling(Scaling.fit)
-                .size(26f * scale)
-                .color(collapsed ? Color.white : ACCENT), Styles.clearNonei, () -> {
-                })
-                .size(launcherSize)
-                .tooltip(collapsed ? "@quickaccess.expand" : "@quickaccess.collapse")
-                .get();
-        addHoverPop(launcher);
+        // 1. Anchor (Draggable only)
+        container.button(Icon.move, Styles.clearNonei, () -> {
+        })
+                .size(buttonSize)
+                .margin(margin)
+                .get()
+                .addListener(new InputListener() {
+                    float lastX, lastY;
 
-        launcher.addListener(new InputListener() {
-            float lastX, lastY, startX, startY;
-            boolean dragged = false;
+                    @Override
+                    public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button) {
+                        lastX = x;
+                        lastY = y;
+                        return true;
+                    }
 
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button) {
-                lastX = x;
-                lastY = y;
-                startX = x;
-                startY = y;
-                dragged = false;
-                return true;
-            }
+                    @Override
+                    public void touchDragged(InputEvent event, float x, float y, int pointer) {
+                        try {
+                            moveBy(x - lastX, y - lastY);
 
-            @Override
-            public void touchDragged(InputEvent event, float x, float y, int pointer) {
-                if (Mathf.dst(x, y, startX, startY) > DRAG_THRESHOLD) {
-                    dragged = true;
-                }
-                try {
-                    moveBy(x - lastX, y - lastY);
+                            float sw = Core.graphics.getWidth();
+                            float sh = Core.graphics.getHeight();
 
-                    float sw = Core.graphics.getWidth();
-                    float sh = Core.graphics.getHeight();
+                            QuickAccessFeature.this.x = Mathf.clamp(QuickAccessFeature.this.x, 0, sw - 40f);
+                            QuickAccessFeature.this.y = Mathf.clamp(QuickAccessFeature.this.y, 0, sh - 40f);
 
-                    QuickAccessFeature.this.x = Mathf.clamp(QuickAccessFeature.this.x, 0, sw - 40f);
-                    QuickAccessFeature.this.y = Mathf.clamp(QuickAccessFeature.this.y, 0, sh - 40f);
+                            QuickAccessConfig.x(QuickAccessFeature.this.x);
+                            QuickAccessConfig.y(QuickAccessFeature.this.y);
+                            keepInScreen();
+                        } catch (Exception e) {
+                            Log.err(e);
+                        }
+                    }
+                });
 
-                    QuickAccessConfig.x(QuickAccessFeature.this.x);
-                    QuickAccessConfig.y(QuickAccessFeature.this.y);
-                    keepInScreen();
-                } catch (Exception e) {
-                    Log.err(e);
-                }
-            }
+        float sw = Core.graphics.getWidth();
+        float sh = Core.graphics.getHeight();
 
-            @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, KeyCode button) {
-                if (!dragged) {
-                    toggleCollapsed();
-                }
-            }
-        });
+        QuickAccessFeature.this.x = Mathf.clamp(QuickAccessFeature.this.x, 0, sw - 40f);
+        QuickAccessFeature.this.y = Mathf.clamp(QuickAccessFeature.this.y, 0, sh - 40f);
 
-        container.add(launcherWrap).size(launcherSize);
+        QuickAccessConfig.x(QuickAccessFeature.this.x);
+        QuickAccessConfig.y(QuickAccessFeature.this.y);
 
-        if (!collapsed) {
-            // Expanded panel: rounded dark pill holding feature shortcuts + close
-            // btn, growing out to the RIGHT from behind the fixed launcher icon.
-            Table panel = new Table();
-            panel.background(Tex.pane);
-            panel.setColor(BAR_BG.r, BAR_BG.g, BAR_BG.b, QuickAccessConfig.opacity());
+        // 2. Separator
+        Image sep = new Image(Tex.whiteui);
+        sep.setColor(Pal.accent);
+        container.add(sep).width(2f).fillY();
 
-            populateContent(panel, buttonSize, margin);
-
-            Button closeBtn = panel
-                    .button(Icon.cancel, Styles.clearNonei, this::toggleCollapsed)
-                    .size(28f * scale)
-                    .margin(4f * scale)
-                    .tooltip("@quickaccess.collapse")
-                    .get();
-            addHoverPop(closeBtn);
-
-            container.add(panel).padLeft(8f * scale);
-        }
+        // 3. Content (Always visible)
+        Table content = new Table();
+        populateContent(content);
+        container.add(content);
 
         add(container).pad(0).margin(0);
         pack();
         keepInScreen();
-    }
-
-    /** Smoothly hides or reveals the button grid via a short cross-fade. */
-    private void toggleCollapsed() {
-        if (animating) {
-            return;
-        }
-
-        boolean newState = !QuickAccessConfig.collapsed();
-        QuickAccessConfig.collapsed(newState);
-
-        animating = true;
-        clearActions();
-        addAction(Actions.sequence(
-                Actions.fadeOut(TOGGLE_FADE_OUT, Interp.pow2In),
-                Actions.run(() -> {
-                    rebuild();
-                    color.a = 0f;
-                }),
-                Actions.fadeIn(TOGGLE_FADE_IN, Interp.pow2Out),
-                Actions.run(() -> animating = false)));
-    }
-
-    /** Adds a subtle scale-up "pop" on hover/press for extra tactile feedback. */
-    private void addHoverPop(Button element) {
-        element.setTransform(true);
-        element.addListener(new InputListener() {
-            @Override
-            public void enter(InputEvent event, float x, float y, int pointer, Element fromActor) {
-                element.clearActions();
-                element.addAction(Actions.scaleTo(1.12f, 1.12f, HOVER_DURATION, Interp.pow2Out));
-            }
-
-            @Override
-            public void exit(InputEvent event, float x, float y, int pointer, Element toActor) {
-                element.clearActions();
-                element.addAction(Actions.scaleTo(1f, 1f, HOVER_DURATION, Interp.pow2Out));
-            }
-        });
     }
 
     public void keepInScreen() {
@@ -269,8 +187,15 @@ public class QuickAccessFeature extends Table implements Feature {
             y = sh - h;
     }
 
-    private void populateContent(Table t, float buttonSize, float margin) {
+    private void populateContent(Table t) {
+        t.background(Styles.black6);
+
         Seq<Feature> features = FeatureManager.getInstance().getFeatures();
+        int i = 0;
+        int cols = QuickAccessConfig.cols();
+        float scale = QuickAccessConfig.scale();
+        float buttonSize = 48f * scale;
+        float margin = 8f * scale;
 
         for (Feature f : features) {
             if (f == this) {
@@ -278,7 +203,7 @@ public class QuickAccessFeature extends Table implements Feature {
             }
 
             try {
-                addFeatureButton(t, f, buttonSize, margin);
+                i = addFeatureButton(t, f, buttonSize, margin, i, cols);
             } catch (Exception e) {
                 // Isolate per-feature failures so one broken button doesn't take
                 // down the whole panel (and, transitively, the rest of the HUD).
@@ -286,25 +211,24 @@ public class QuickAccessFeature extends Table implements Feature {
             }
         }
 
-        Button settingsBtn = t
+        t
                 .button(b -> b.image(Utils.scalable(Icon.settings)).scaling(Scaling.fit), Styles.clearNonei, () -> {
                     Main.featureSettingDialog.show();
                 })
                 .size(buttonSize)
                 .margin(margin)
                 .get();
-        addHoverPop(settingsBtn);
     }
 
-    private void addFeatureButton(Table t, Feature f, float buttonSize, float margin) {
+    private int addFeatureButton(Table t, Feature f, float buttonSize, float margin, int i, int cols) {
         FeatureMetadata meta = f.getMetadata();
 
         if (!meta.quickAccess()) {
-            return;
+            return i;
         }
 
         if (!QuickAccessConfig.isFeatureVisible(meta.name())) {
-            return;
+            return i;
         }
 
         Button[] btnRef = new Button[1];
@@ -314,7 +238,7 @@ public class QuickAccessFeature extends Table implements Feature {
         btnRef[0] = t.button(b -> {
             b.image(meta.icon())
                     .scaling(Scaling.fit)
-                    .update(l -> l.setColor(f.isEnabled() ? ACCENT : Pal.gray));
+                    .update(l -> l.setColor(f.isEnabled() ? Color.white : Pal.gray));
         }, Styles.clearNonei, () -> {
             if (!longPressed[0]) {
                 FeatureManager.getInstance().toggle(f);
@@ -324,8 +248,6 @@ public class QuickAccessFeature extends Table implements Feature {
                 .margin(margin)
                 .tooltip(meta.name())
                 .get();
-
-        addHoverPop(btnRef[0]);
 
         btnRef[0].update(() -> {
             if (btnRef[0].isPressed()) {
@@ -340,6 +262,12 @@ public class QuickAccessFeature extends Table implements Feature {
                 pressTime[0] = -1;
             }
         });
+
+        i++;
+        if (i % cols == 0) {
+            t.row();
+        }
+        return i;
     }
 
     @Override
@@ -366,10 +294,7 @@ public class QuickAccessFeature extends Table implements Feature {
             Core.app.post(() -> {
                 try {
                     Vars.ui.hudGroup.addChild(this);
-                    // Smooth fade-in the first time the panel appears.
-                    color.a = 0f;
-                    clearActions();
-                    addAction(Actions.fadeIn(0.3f, Interp.pow2Out));
+                    keepInScreen();
                 } catch (Exception e) {
                     Log.err("[QuickAccessFeature] failed to attach to hudGroup", e);
                 }
@@ -389,4 +314,4 @@ public class QuickAccessFeature extends Table implements Feature {
         }
         return Optional.of(settingsDialog);
     }
-            }
+}
