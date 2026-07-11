@@ -29,6 +29,8 @@ import modifiedtools.features.display.quickaccess.QuickAccessFeature;
 import modifiedtools.features.settings.FeatureSettingDialog;
 import modifiedtools.features.conveyormaker.ConveyorMakerFeature;
 import modifiedtools.features.smartupgrade.SmartUpgradeFeature;
+import modifiedtools.features.smartdeconstruct.SmartDeconstructFeature;
+import modifiedtools.features.display.corecapacity.CoreCapacityWarning;
 import modifiedtools.features.time.TimeControlFeature;
 import modifiedtools.features.smartdrill.SmartDrillFeature;
 import modifiedtools.services.ServerService;
@@ -134,10 +136,12 @@ public class Main extends Mod {
                 new GodModeFeature(),
                 new SmartDrillFeature(),
                 new SmartUpgradeFeature(),
+                new SmartDeconstructFeature(),
                 new ConveyorMakerFeature(),
                 new BackgroundFeature(),
                 new MusicFeature(),
                 new ProgressDisplay(),
+                new CoreCapacityWarning(),
                 new ToggleRenderingFeature(),
                 new TimeControlFeature(),
                 new CampaignFeature(),
