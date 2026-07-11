@@ -4,6 +4,8 @@ displayName: "ModifiedTools"
 
 author: "[#FF0018[]]S[#FFA52C[]]I[#FFFF41[]]J"
 
+main: "mindustrytool.Main"
+
 description:
   '''
 [accent[]] [#FFF000[]]Mindustry Tool  [white[]]- The Ultimate Utility for Every Player[[]]
