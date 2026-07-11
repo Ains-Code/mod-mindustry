@@ -5,20 +5,16 @@
 ### Security
 
 - **CRITICAL** `CrashReportDialog.java:38` — Sends crash report to API on dialog hide without user confirming the send; `hidden()` callback fires even if user unchecked the "send" box? Actually it checks `Core.settings.getBool(sendCrashReportKey, true)` — if user unchecks but the value was previously true, the setting update and the hidden callback may race. Also sends raw potentially sensitive crash data (stack traces with paths).
-- **HIGH** `PlayerConnectService.java:36` — Room cache never expires; stale room data persists indefinitely
 - **MEDIUM** `UpdateService.java:120-129` — Parses release notes from GitHub API; HTML/markdown content rendered via `Utils.renderMarkdown` — potential injection if markdown parser has issues
 - **MEDIUM** `CrashReportDialog.java:55-58` — `Http.post` sends crash data without timeout; could block UI thread if server is slow
 
 ### Data Loss
 
 - **HIGH** `CrashReportService.java:15` — `SimpleDateFormat` is not thread-safe; used as instance field but `checkForCrashes` could be called from any thread
-- **MEDIUM** `PlayerConnectService.java:28-30` — `roomFuture` field shared across calls; if `findPlayerConnectRooms` is called while another request is in-flight, the second caller gets the same future (potentially wrong results or lost errors)
 
 ### Concurrency
 
 - **HIGH** `CrashReportService.java:15` — Instance-level `SimpleDateFormat`; not thread-safe
-- **MEDIUM** `PlayerConnectService.java:28-30` — `roomFuture` is a shared mutable field; `synchronized` on method but `CompletableFuture` callbacks may execute on different threads
-- **MEDIUM** `PlayerConnectService.java:36` — `ConcurrentHashMap` for roomCache but no eviction/timeout policy
 - **MEDIUM** `UserService.java:20-21` — `ConcurrentHashMap` listeners; `batch()` clears all listeners then iterates the copy; if `findUserById` is called during batch, its future is in the new map but won't be processed until next batch tick (200ms delay)
 
 ### Anti-Patterns
@@ -41,4 +37,3 @@
 ### Performance
 
 - **LOW** `TapListener.java:44-48` — On each frame when touched, iterates all hold listeners linearly; if many listeners registered, could cause frame drops in update loop
-- **LOW** `PlayerConnectService.java:45` — `findPlayerConnectRooms` uses `.select(room -> ...)` after deserializing all rooms; filtering should happen server-side via query param `q`
