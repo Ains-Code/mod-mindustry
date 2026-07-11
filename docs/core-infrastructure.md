@@ -31,7 +31,7 @@
 - **MEDIUM** `Config.java:11-14` — Commented-out localhost/dev URL variants accumulate dead config
 - **MEDIUM** `WebFeature.java` — All URLs hardcoded with `/vi/` locale; no internationalization support for web links
 - **LOW** `MdtInitEvent.java` — Empty marker event class; could be simplified to an interface or annotation
-- **LOW** `Feature.java:33` — `getSettingKey()` hardcodes "mindustrytool." prefix as string literal; duplicated in multiple feature config classes
+- **LOW** `Feature.java:33` — `getSettingKey()` hardcodes "modifiedtools." prefix as string literal; duplicated in multiple feature config classes
 
 ### Performance
 
@@ -41,4 +41,4 @@
 ### Architectural Violations
 
 - **HIGH** `Main.java` — Entry point does setup, feature registration, UI button creation, packet reflection, and crash handling; violates Single Responsibility Principle
-- **MEDIUM** Services use singleton pattern inconsistently: `ServerService`, `PlayerConnectService` use `getInstance()` but `MapService`, `SchematicService` use static methods directly
+- **MEDIUM** Services use singleton pattern inconsistently: `CrashReportService`, `ServerService`, `TapListener`, `UpdateService` use `getInstance()` but `MapService`, `SchematicService` use static methods directly
