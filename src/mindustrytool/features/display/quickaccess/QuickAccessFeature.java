@@ -43,6 +43,12 @@ public class QuickAccessFeature extends Table implements Feature {
     private static final float DRAG_TAP_THRESHOLD = 6f;
     private static final float TOGGLE_ANIM_DURATION = 0.22f;
 
+    // Matches the purple/cyan palette from the icon-expand-collapse mockup
+    // instead of the plain default black6 + Pal.accent look.
+    private static final Color BAR_BG = Color.valueOf("14121fee");
+    private static final Color ACCENT_PURPLE = Color.valueOf("b48bffff");
+    private static final Color ACCENT_CYAN = Color.valueOf("4dd0e1ff");
+
     private BaseDialog settingsDialog;
 
     @Override
@@ -106,8 +112,8 @@ public class QuickAccessFeature extends Table implements Feature {
 
         // Main container table that will be dragged
         Table container = new Table();
-        container.background(Styles.black6);
-        container.setColor(1f, 1f, 1f, QuickAccessConfig.opacity());
+        container.background(Tex.pane);
+        container.setColor(BAR_BG.r, BAR_BG.g, BAR_BG.b, BAR_BG.a * QuickAccessConfig.opacity());
         container.touchable = Touchable.enabled; // Container catches touches
 
         float scale = QuickAccessConfig.scale();
@@ -185,13 +191,14 @@ public class QuickAccessFeature extends Table implements Feature {
         if (!collapsedNow) {
             // 2. Separator (only when expanded)
             Image sep = new Image(Tex.whiteui);
-            sep.setColor(Pal.accent);
+            sep.setColor(ACCENT_PURPLE);
             container.add(sep).width(2f).fillY();
 
             // 3. Content: feature buttons + a close button that collapses the bar
             Table content = new Table();
             populateContent(content);
-            content.button(Icon.cancelSmall, Styles.clearNonei, this::collapseWithAnimation)
+            content.button(b -> b.image(Icon.cancelSmall).color(ACCENT_CYAN), Styles.clearNonei,
+                    this::collapseWithAnimation)
                     .size(buttonSize)
                     .margin(margin);
             container.add(content);
@@ -199,16 +206,16 @@ public class QuickAccessFeature extends Table implements Feature {
             // Short fade + scale-in so expanding doesn't just pop into existence.
             // Touch is disabled for the duration so a tap can't land on a button
             // before it's actually visible.
-            float targetOpacity = QuickAccessConfig.opacity();
+            float targetAlpha = BAR_BG.a * QuickAccessConfig.opacity();
             container.setOrigin(0f, container.getPrefHeight() / 2f);
             container.setTransform(true);
-            container.setColor(1f, 1f, 1f, 0f);
+            container.setColor(BAR_BG.r, BAR_BG.g, BAR_BG.b, 0f);
             container.setScale(0.85f, 0.85f);
             container.touchable = Touchable.disabled;
             container.actions(
                     Actions.sequence(
                             Actions.parallel(
-                                    Actions.alpha(targetOpacity, TOGGLE_ANIM_DURATION, Interp.fade),
+                                    Actions.alpha(targetAlpha, TOGGLE_ANIM_DURATION, Interp.fade),
                                     Actions.scaleTo(1f, 1f, TOGGLE_ANIM_DURATION, Interp.pow3Out)),
                             Actions.run(() -> container.touchable = Touchable.enabled)));
         }
@@ -266,7 +273,8 @@ public class QuickAccessFeature extends Table implements Feature {
     }
 
     private void populateContent(Table t) {
-        t.background(Styles.black6);
+        t.background(Tex.pane);
+        t.setColor(BAR_BG.r, BAR_BG.g, BAR_BG.b, BAR_BG.a);
 
         Seq<Feature> features = FeatureManager.getInstance().getFeatures();
         int i = 0;
