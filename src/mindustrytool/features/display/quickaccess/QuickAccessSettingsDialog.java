@@ -56,6 +56,12 @@ public class QuickAccessSettingsDialog extends BaseDialog {
         addSlider(table, "@columns", 1, 9, 1, QuickAccessConfig.cols(), false,
                 v -> QuickAccessConfig.cols((int) (float) v), quickAccessHud);
 
+        table.check("@collapsed", QuickAccessConfig.collapsed(), collapsed -> {
+            QuickAccessConfig.collapsed(collapsed);
+            quickAccessHud.rebuild();
+        }).fillX().top().left().pad(Vars.mobile ? 8f : 5f).get().left();
+        table.row();
+
         table.image().color(Color.gray).height(2).growX().pad(5).row();
         table.add("@features").style(Styles.outlineLabel).left().pad(5).row();
 
